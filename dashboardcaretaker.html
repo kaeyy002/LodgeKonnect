@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caretaker Dashboard — LodgeKonnect</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/brand.css">
+<style>
+.app{display:flex;min-height:100vh;position:relative;z-index:1;}
+.sidebar{width:260px;flex-shrink:0;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;backdrop-filter:var(--blur);transition:transform 0.3s;}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);}
+.sidebar-logo a{font-family:var(--font-display);font-size:1.3rem;font-weight:800;background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);}
+.sidebar-user .info .name{font-weight:600;font-size:0.9rem;}
+.sidebar-user .info .role{font-size:0.75rem;color:var(--text-muted);}
+nav.sidebar-nav{flex:1;overflow-y:auto;padding:12px 10px;}
+.nav-group-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);padding:12px 10px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-sm);color:var(--text-secondary);font-size:0.88rem;font-weight:500;cursor:pointer;transition:all 0.2s;border:none;background:none;width:100%;text-align:left;}
+.nav-item:hover{background:var(--bg-card-hover);color:var(--text-primary);}
+.nav-item.active{background:rgba(22,163,74,0.15);color:#86EFAC;border:1px solid rgba(22,163,74,0.2);}
+.nav-item.active i{background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sidebar-footer{padding:16px 10px;border-top:1px solid var(--border);}
+.main{margin-left:260px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(10,15,13,0.85);backdrop-filter:var(--blur);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.topbar-title{font-family:var(--font-display);font-weight:700;font-size:1rem;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.icon-btn{width:38px;height:38px;border-radius:50%;background:var(--bg-input);border:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;font-size:0.9rem;}
+.icon-btn:hover{border-color:var(--g-mid);color:var(--text-primary);}
+.page-content{flex:1;padding:32px;}
+.section{display:none;animation:fadeUp 0.3s ease;}
+.section.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.page-header{margin-bottom:28px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.page-header-text h2{margin-bottom:4px;}
+.page-header-text p{color:var(--text-secondary);font-size:0.9rem;}
+.hamburger{display:none;width:38px;height:38px;border-radius:50%;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);align-items:center;justify-content:center;cursor:pointer;font-size:1rem;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:190;backdrop-filter:blur(3px);}
+
+/* Posted lodge table */
+.lodge-table{width:100%;border-collapse:collapse;}
+.lodge-table th,.lodge-table td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--border);font-size:0.88rem;}
+.lodge-table th{color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;background:rgba(255,255,255,0.02);}
+.lodge-table tr:hover td{background:rgba(255,255,255,0.02);}
+.lodge-table td .lodge-thumb{width:44px;height:44px;border-radius:var(--r-sm);object-fit:cover;border:1px solid var(--border);background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--text-muted);flex-shrink:0;}
+.lodge-table td .lodge-thumb img{width:100%;height:100%;object-fit:cover;border-radius:var(--r-sm);}
+.lodge-name-cell{display:flex;align-items:center;gap:10px;}
+.table-actions{display:flex;gap:6px;}
+
+/* Status select */
+.status-select{background:transparent;border:none;font-size:0.82rem;color:inherit;cursor:pointer;padding:0;}
+
+/* Add lodge form grid */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-grid .full{grid-column:1/-1;}
+.amenity-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.amenity-pill{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-full);padding:6px 12px;font-size:0.8rem;cursor:pointer;transition:all 0.2s;user-select:none;}
+.amenity-pill.selected{background:rgba(22,163,74,0.15);border-color:rgba(22,163,74,0.35);color:#86EFAC;}
+
+/* Notif */
+.notif-list{display:flex;flex-direction:column;gap:8px;}
+.notif-item{display:flex;gap:12px;padding:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);transition:background 0.2s;}
+.notif-item.unread{border-color:rgba(22,163,74,0.3);background:rgba(22,163,74,0.06);}
+.notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;background:rgba(22,163,74,0.15);color:#86EFAC;flex-shrink:0;}
+.notif-body{flex:1;}
+.notif-title{font-weight:600;font-size:0.88rem;margin-bottom:2px;}
+.notif-msg{font-size:0.82rem;color:var(--text-secondary);}
+.notif-time{font-size:0.72rem;color:var(--text-muted);margin-top:4px;}
+
+/* Stats banner */
+.welcome-banner{background:var(--grad-card);border:1px solid rgba(22,163,74,0.2);border-radius:var(--r-xl);padding:28px 32px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.welcome-banner h2{margin-bottom:4px;}
+.welcome-banner p{color:var(--text-secondary);font-size:0.9rem;}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;}
+  .main{margin-left:0;}
+  .hamburger{display:flex;}
+  .page-content{padding:20px 16px;}
+  .topbar{padding:12px 16px;}
+  .form-grid{grid-template-columns:1fr;}
+  .form-grid .full{grid-column:1;}
+  .lodge-table th:nth-child(3),.lodge-table td:nth-child(3){display:none;}
+  .page-header{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><a href="index.html">⬡ LodgeKonnect</a></div>
+    <div class="sidebar-user">
+      <div class="avatar" id="sidebarAvatar">?</div>
+      <div class="info">
+        <div class="name" id="sidebarName">Caretaker</div>
+        <div class="role">Caretaker account</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Dashboard</div>
+      <button class="nav-item active" onclick="showSection('overview')"><i class="fas fa-chart-pie"></i> Overview</button>
+      <button class="nav-item" onclick="showSection('add-lodge')"><i class="fas fa-plus-circle"></i> Add New Lodge</button>
+      <button class="nav-item" onclick="showSection('my-lodges')"><i class="fas fa-building"></i> My Lodges</button>
+      <div class="nav-group-label">Activity</div>
+      <button class="nav-item" id="notifNavBtn" onclick="showSection('notifications')"><i class="fas fa-bell"></i> Notifications<span class="badge-count hidden" id="notifBadge">0</span></button>
+      <button class="nav-item" onclick="showSection('profile')"><i class="fas fa-user-circle"></i> My Profile</button>
+      <div class="nav-group-label">Account</div>
+      <button class="nav-item" onclick="showSection('settings')"><i class="fas fa-cog"></i> Settings</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="nav-item btn-danger" onclick="Auth.logout()" style="color:var(--g-danger);width:100%;"><i class="fas fa-sign-out-alt"></i> Log out</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+      <span class="topbar-title" id="topbarTitle">Dashboard</span>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="showSection('notifications')" title="Notifications" style="position:relative;">
+          <i class="fas fa-bell"></i>
+          <span class="notif-dot hidden" id="topbarNotifDot"></span>
+        </button>
+        <div class="avatar" id="topbarAvatar" onclick="showSection('profile')" style="cursor:pointer;width:38px;height:38px;font-size:0.9rem;">?</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- ── Overview ── -->
+      <section id="overview" class="section active">
+        <div class="welcome-banner">
+          <div>
+            <h2>Welcome, <span id="welcomeName">Caretaker</span> 👋</h2>
+            <p>Manage your lodges and stay on top of student interest.</p>
+          </div>
+          <button class="btn btn-primary" onclick="showSection('add-lodge')"><i class="fas fa-plus"></i> Add a Lodge</button>
+        </div>
+        <div class="stat-grid" id="overviewStats">
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-building"></i></div><div class="stat-num" id="statTotal">—</div><div class="stat-label">Lodges posted</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div class="stat-num" id="statActive">—</div><div class="stat-label">Active listings</div></div>
+          <div class="stat-card"><div class="stat-icon"><i class="fas fa-user-check"></i></div><div class="stat-num" id="statOccupied">—</div><div class="stat-label">Occupied rooms</div></div>
+          <div class="stat-card" onclick="showSection('add-lodge')" style="border-color:rgba(22,163,74,0.25);background:rgba(22,163,74,0.06);">
+            <div class="stat-icon"><i class="fas fa-plus"></i></div>
+            <div class="stat-num" style="font-size:1.5rem;">Add</div>
+            <div class="stat-label">New lodge listing</div>
+          </div>
+        </div>
+        <div style="margin-top:28px;">
+          <div class="flex justify-between items-center mb-4">
+            <h3>My Lodges</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showSection('my-lodges')">View all <i class="fas fa-arrow-right"></i></button>
+          </div>
+          <div id="overviewLodges"><div class="loading-overlay"><div class="spinner"></div><span>Loading…</span></div></div>
+        </div>
+      </section>
+
+      <!-- ── Add Lodge ── -->
+      <section id="add-lodge" class="section">
+        <div class="page-header">
+          <div class="page-header-text"><h2>Add New Lodge</h2><p>Fill in your lodge details. Students will see this listing.</p></div>
+        </div>
+        <div style="max-width:680px;">
+          <form id="addLodgeForm">
+            <div class="form-grid">
+              <div class="form-group full"><label>Lodge name *</label><input type="text" id="aLodgeName" placeholder="e.g. Golden Gate Hostel" required></div>
+              <div class="form-group"><label>Location *</label>
+                <select id="aLocation" required>
+                  <option value="">Select location</option>
+                  <option value="eziobodo">Eziobodo</option>
+                  <option value="umuchima">Umuchima</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Annual price (₦) *</label><input type="number" id="aPrice" placeholder="e.g. 80000" min="0" required></div>
+              <div class="form-group"><label>Number of rooms</label><input type="number" id="aRooms" placeholder="e.g. 10" min="0"></div>
+              <div class="form-group"><label>Gender preference</label>
+                <select id="aGender">
+                  <option value="any">Any (mixed)</option>
+                  <option value="male">Male only</option>
+                  <option value="female">Female only</option>
+                </select>
+              </div>
+              <div class="form-group full"><label>Description *</label><textarea id="aDesc" rows="4" placeholder="Describe your lodge — water supply, electricity, security, distance from FUTO gate…" required></textarea></div>
+              <div class="form-group full">
+                <label>Amenities</label>
+                <div class="amenity-pills" id="amenityPills"></div>
+                <input type="hidden" id="aAmenities">
+              </div>
+              <div class="form-group full">
+                <label>Photos (up to 6)</label>
+                <div class="upload-zone" id="photoZone"><i class="fas fa-images"></i>Click or drag photos here (JPG, PNG, WebP — max 3MB each)</div>
+                <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
+                <div class="upload-previews" id="photoPreviews"></div>
+              </div>
+            </div>
+            <div class="flex gap-3 mt-2">
+              <button type="submit" class="btn btn-primary" id="addLodgeBtn"><i class="fas fa-plus-circle"></i> Post Lodge</button>
+              <button type="reset" class="btn btn-ghost" onclick="resetAddForm()">Clear form</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── My Lodges ── -->
+      <section id="my-lodges" class="section">
+        <div class="page-header">
+          <div class="page-header-text"><h2>My Lodges</h2><p>Manage, edit, or remove your listings</p></div>
+          <button class="btn btn-primary btn-sm" onclick="showSection('add-lodge')"><i class="fas fa-plus"></i> Add Lodge</button>
+        </div>
+        <div id="myLodgesWrap"><div class="loading-overlay"><div class="spinner"></div><span>Loading…</span></div></div>
+      </section>
+
+      <!-- ── Edit Lodge ── -->
+      <section id="edit-lodge" class="section">
+        <div class="page-header">
+          <div class="page-header-text"><h2>Edit Lodge</h2><p>Update your listing details</p></div>
+          <button class="btn btn-ghost btn-sm" onclick="showSection('my-lodges')"><i class="fas fa-arrow-left"></i> Back</button>
+        </div>
+        <div style="max-width:680px;">
+          <form id="editLodgeForm">
+            <input type="hidden" id="eLodgeId">
+            <div class="form-grid">
+              <div class="form-group full"><label>Lodge name *</label><input type="text" id="eLodgeName" required></div>
+              <div class="form-group"><label>Location *</label>
+                <select id="eLocation">
+                  <option value="eziobodo">Eziobodo</option>
+                  <option value="umuchima">Umuchima</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Annual price (₦) *</label><input type="number" id="ePrice" min="0" required></div>
+              <div class="form-group"><label>Number of rooms</label><input type="number" id="eRooms" min="0"></div>
+              <div class="form-group"><label>Gender preference</label>
+                <select id="eGender">
+                  <option value="any">Any (mixed)</option>
+                  <option value="male">Male only</option>
+                  <option value="female">Female only</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Status</label>
+                <select id="eStatus">
+                  <option value="active">Active — available</option>
+                  <option value="occupied">Occupied — full</option>
+                  <option value="unavailable">Unavailable</option>
+                </select>
+              </div>
+              <div class="form-group full"><label>Description *</label><textarea id="eDesc" rows="4" required></textarea></div>
+              <div class="form-group full">
+                <label>Amenities</label>
+                <div class="amenity-pills" id="editAmenityPills"></div>
+                <input type="hidden" id="eAmenities">
+              </div>
+              <div class="form-group full">
+                <label>Replace photos (leave blank to keep current)</label>
+                <div class="upload-zone" id="editPhotoZone"><i class="fas fa-images"></i>Click or drag new photos here</div>
+                <input type="file" id="editPhotoInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
+                <div class="upload-previews" id="editPhotoPreviews"></div>
+              </div>
+            </div>
+            <div class="flex gap-3 mt-2">
+              <button type="submit" class="btn btn-primary" id="editLodgeBtn"><i class="fas fa-save"></i> Save changes</button>
+              <button type="button" class="btn btn-ghost" onclick="showSection('my-lodges')">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── Notifications ── -->
+      <section id="notifications" class="section">
+        <div class="page-header">
+          <div class="page-header-text"><h2>Notifications</h2><p>Updates on your listings</p></div>
+          <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notifList"><div class="loading-overlay"><div class="spinner"></div></div></div>
+      </section>
+
+      <!-- ── Profile ── -->
+      <section id="profile" class="section">
+        <div class="page-header"><div class="page-header-text"><h2>My Profile</h2><p>Update your caretaker details</p></div></div>
+        <div style="max-width:520px;">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+            <div class="avatar xl" id="profileAvatarDisplay">?</div>
+            <div>
+              <div style="font-weight:700;font-size:1.1rem;" id="profileNameDisplay">—</div>
+              <div style="color:var(--text-muted);font-size:0.85rem;" id="profileEmailDisplay">—</div>
+              <span class="badge badge-amber mt-2">Caretaker</span>
+            </div>
+          </div>
+          <form id="profileForm">
+            <div class="form-group"><label>Bio / About you</label><textarea id="pBio" rows="3" placeholder="Tell students a bit about yourself as a caretaker…"></textarea></div>
+            <div class="form-group">
+              <label>Profile photo</label>
+              <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(this)" style="padding:10px;">
+            </div>
+            <button type="submit" class="btn btn-primary" id="profileSaveBtn" style="padding:12px 28px;justify-content:center;"><i class="fas fa-save"></i> Save</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── Settings ── -->
+      <section id="settings" class="section">
+        <div class="page-header"><div class="page-header-text"><h2>Settings</h2></div></div>
+        <div style="max-width:440px;display:flex;flex-direction:column;gap:12px;">
+          <div class="glass" style="padding:20px;">
+            <h4 style="margin-bottom:14px;">Account info</h4>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:0.88rem;">
+              <div class="flex justify-between"><span style="color:var(--text-muted);">Name</span><span id="settingsName">—</span></div>
+              <div class="flex justify-between"><span style="color:var(--text-muted);">Email</span><span id="settingsEmail">—</span></div>
+              <div class="flex justify-between"><span style="color:var(--text-muted);">Phone</span><span id="settingsPhone">—</span></div>
+            </div>
+          </div>
+          <div class="glass" style="padding:20px;">
+            <h4 style="margin-bottom:12px;">Danger zone</h4>
+            <button class="btn btn-danger btn-sm" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Log out</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header"><h3>Delete lodge?</h3><button class="modal-close" onclick="closeModal('deleteModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <p style="color:var(--text-secondary);margin-bottom:24px;">This will permanently delete <strong id="deleteLodgeName"></strong> and all its photos. This cannot be undone.</p>
+      <div class="flex gap-3">
+        <button class="btn btn-danger" id="confirmDeleteBtn">Yes, delete it</button>
+        <button class="btn btn-ghost" onclick="closeModal('deleteModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <button class="lb-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+  <button class="lb-arrow lb-prev" onclick="lbNav(-1)"><i class="fas fa-chevron-left"></i></button>
+  <img src="" alt="Preview">
+  <button class="lb-arrow lb-next" onclick="lbNav(1)"><i class="fas fa-chevron-right"></i></button>
+</div>
+<div id="toast-container"></div>
+
+<script src="assets/js/app.js"></script>
+<script>
+// ── Auth guard ──────────────────────────────────────────
+(async () => {
+  const valid = await Auth.verify();
+  if (!valid) { Auth.clear(); location.href = 'login.html'; }
+  if (Auth.get('type') !== 'caretaker') location.href = 'dashboard.html';
+})();
+
+const AMENITIES = ['WiFi','Running water','Generator','Security','Borehole','PHCN (NEPA)','Kitchen','Car park','Tiled rooms','CCTV','Water heater','Study room'];
+let myLodges = [], deletePendingId = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const name = Auth.get('name') || 'Caretaker';
+  document.getElementById('welcomeName').textContent = name.split(' ')[0];
+  document.getElementById('sidebarName').textContent = name;
+  document.getElementById('profileNameDisplay').textContent = name;
+  document.getElementById('profileEmailDisplay').textContent = Auth.get('email') || '';
+  document.getElementById('settingsName').textContent = name;
+  document.getElementById('settingsEmail').textContent = Auth.get('email') || '';
+  document.getElementById('settingsPhone').textContent = Auth.get('phone') || '';
+
+  const initials = fmt.initials(name);
+  ['sidebarAvatar','topbarAvatar','profileAvatarDisplay'].forEach(id => {
+    document.getElementById(id).textContent = initials;
+  });
+
+  buildAmenityPills('amenityPills','aAmenities');
+  buildAmenityPills('editAmenityPills','eAmenities');
+  initUploadZone('photoZone','photoInput','photoPreviews');
+  initUploadZone('editPhotoZone','editPhotoInput','editPhotoPreviews');
+  loadMyLodges();
+  loadNotifications();
+});
+
+// ── Navigation ──────────────────────────────────────────
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const sec = document.getElementById(id);
+  if (sec) sec.classList.add('active');
+  const btn = document.querySelector(`.nav-item[onclick="showSection('${id}')"]`);
+  if (btn) btn.classList.add('active');
+  document.getElementById('topbarTitle').textContent = sec?.querySelector('h2')?.textContent || 'Dashboard';
+  closeSidebar();
+  if (id === 'my-lodges') loadMyLodges();
+  if (id === 'notifications') loadNotifications();
+}
+function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
+
+// ── Amenity pills ───────────────────────────────────────
+function buildAmenityPills(containerId, hiddenId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = AMENITIES.map(a =>
+    `<span class="amenity-pill" onclick="toggleAmenity(this,'${hiddenId}')">${a}</span>`).join('');
+}
+function toggleAmenity(el, hiddenId) {
+  el.classList.toggle('selected');
+  const selected = [...el.closest('.amenity-pills').querySelectorAll('.selected')].map(e => e.textContent);
+  document.getElementById(hiddenId).value = selected.join(',');
+}
+function setAmenityPills(containerId, hiddenId, values) {
+  const list = values ? values.split(',').map(v => v.trim()) : [];
+  document.getElementById(hiddenId).value = values || '';
+  document.querySelectorAll(`#${containerId} .amenity-pill`).forEach(el => {
+    el.classList.toggle('selected', list.includes(el.textContent.trim()));
+  });
+}
+
+// ── Load lodges ─────────────────────────────────────────
+async function loadMyLodges() {
+  ['myLodgesWrap','overviewLodges'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) showLoader(el);
+  });
+  try {
+    const data = await API.get('/lodges.php', { caretaker_id: Auth.get('user_id') });
+    myLodges = data.lodges || [];
+
+    // Stats
+    document.getElementById('statTotal').textContent    = myLodges.length;
+    document.getElementById('statActive').textContent   = myLodges.filter(l => l.status === 'active').length;
+    document.getElementById('statOccupied').textContent = myLodges.filter(l => l.status === 'occupied').length;
+
+    // Overview preview (cards)
+    const ovEl = document.getElementById('overviewLodges');
+    if (ovEl) {
+      if (!myLodges.length) {
+        ovEl.innerHTML = '<div class="empty-state"><i class="fas fa-building"></i><p>You haven\'t posted any lodges yet. <button class="btn btn-ghost btn-sm" onclick="showSection(\'add-lodge\')">Add your first lodge</button></p></div>';
+      } else {
+        ovEl.innerHTML = `<div class="card-grid">${myLodges.slice(0,4).map(l => caretakerLodgeCard(l)).join('')}</div>`;
+      }
+    }
+
+    // Full table
+    const wrap = document.getElementById('myLodgesWrap');
+    if (wrap) {
+      if (!myLodges.length) {
+        wrap.innerHTML = '<div class="empty-state"><i class="fas fa-building"></i><p>No lodges yet. <button class="btn btn-primary btn-sm" onclick="showSection(\'add-lodge\')">Post your first lodge</button></p></div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="lodge-table">
+            <thead><tr>
+              <th>Lodge</th><th>Location</th><th>Price</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody>${myLodges.map(l => lodgeTableRow(l)).join('')}</tbody>
+          </table>
+        </div>`;
+    }
+  } catch {
+    ['myLodgesWrap','overviewLodges'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Failed to load. Please try again.</p></div>';
+    });
+  }
+}
+
+function caretakerLodgeCard(l) {
+  const photos = Array.isArray(l.photos) ? l.photos : [];
+  const imgHtml = photos[0] ? `<img src="${photos[0]}" alt="${l.lodge_name}" loading="lazy">` : `<i class="fas fa-building"></i>`;
+  const stClass = l.status==='active'?'badge-green':l.status==='occupied'?'badge-red':'badge-amber';
+  return `<div class="lodge-card glass">
+    <div class="card-img">${imgHtml}</div>
+    <div class="card-body">
+      <div class="flex justify-between items-center mb-1">
+        <h4>${l.lodge_name}</h4>
+        <span class="badge ${stClass}">${l.status}</span>
+      </div>
+      <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:8px;"><i class="fas fa-map-pin" style="color:var(--g-mid);margin-right:4px;"></i>${l.location}</div>
+      <div class="card-price">${fmt.currency(l.price)}<span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);"> /yr</span></div>
+    </div>
+    <div class="card-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openEdit(${l.id})"><i class="fas fa-edit"></i> Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDelete(${l.id},'${l.lodge_name.replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i></button>
+    </div>
+  </div>`;
+}
+
+function lodgeTableRow(l) {
+  const photos = Array.isArray(l.photos) ? l.photos : [];
+  const thumb = photos[0]
+    ? `<div class="lodge-thumb"><img src="${photos[0]}" alt=""></div>`
+    : `<div class="lodge-thumb"><i class="fas fa-building"></i></div>`;
+  const stClass = l.status==='active'?'badge-green':l.status==='occupied'?'badge-red':'badge-amber';
+  return `<tr>
+    <td><div class="lodge-name-cell">${thumb}<span>${l.lodge_name}</span></div></td>
+    <td style="text-transform:capitalize;">${l.location}</td>
+    <td>${fmt.currency(l.price)}/yr</td>
+    <td><span class="badge ${stClass}">${l.status}</span></td>
+    <td><div class="table-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openEdit(${l.id})"><i class="fas fa-edit"></i> Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDelete(${l.id},'${l.lodge_name.replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`;
+}
+
+// ── Add lodge ───────────────────────────────────────────
+document.getElementById('addLodgeForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('addLodgeBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting…';
+
+  const fd = new FormData();
+  fd.append('token', Auth.get('token'));
+  fd.append('lodge_name',        document.getElementById('aLodgeName').value.trim());
+  fd.append('location',          document.getElementById('aLocation').value);
+  fd.append('price',             document.getElementById('aPrice').value);
+  fd.append('room_number',       document.getElementById('aRooms').value);
+  fd.append('gender_preference', document.getElementById('aGender').value);
+  fd.append('description',       document.getElementById('aDesc').value.trim());
+  fd.append('amenities',         document.getElementById('aAmenities').value);
+
+  const files = document.getElementById('photoInput').files;
+  for (let i = 0; i < Math.min(files.length, 6); i++) fd.append('photos[]', files[i]);
+
+  try {
+    const data = await API.postForm('/lodges.php', fd);
+    if (data.success) {
+      toast('Lodge posted successfully!', 'success');
+      document.getElementById('addLodgeForm').reset();
+      document.getElementById('photoPreviews').innerHTML = '';
+      document.querySelectorAll('#amenityPills .amenity-pill').forEach(p => p.classList.remove('selected'));
+      loadMyLodges();
+      setTimeout(() => showSection('my-lodges'), 1000);
+    } else toast(data.error || 'Failed to post lodge', 'error');
+  } catch { toast('Network error', 'error'); }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus-circle"></i> Post Lodge';
+});
+
+// ── Edit lodge ──────────────────────────────────────────
+function openEdit(id) {
+  const lodge = myLodges.find(l => l.id == id);
+  if (!lodge) return;
+  document.getElementById('eLodgeId').value   = id;
+  document.getElementById('eLodgeName').value = lodge.lodge_name;
+  document.getElementById('eLocation').value  = lodge.location;
+  document.getElementById('ePrice').value     = lodge.price;
+  document.getElementById('eRooms').value     = lodge.room_number || '';
+  document.getElementById('eGender').value    = lodge.gender_preference || 'any';
+  document.getElementById('eStatus').value    = lodge.status || 'active';
+  document.getElementById('eDesc').value      = lodge.description || '';
+  setAmenityPills('editAmenityPills','eAmenities', lodge.amenities || '');
+  document.getElementById('editPhotoPreviews').innerHTML = '';
+  showSection('edit-lodge');
+}
+
+document.getElementById('editLodgeForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('editLodgeBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+  const fd = new FormData();
+  fd.append('token',             Auth.get('token'));
+  fd.append('lodge_id',          document.getElementById('eLodgeId').value);
+  fd.append('lodge_name',        document.getElementById('eLodgeName').value.trim());
+  fd.append('location',          document.getElementById('eLocation').value);
+  fd.append('price',             document.getElementById('ePrice').value);
+  fd.append('room_number',       document.getElementById('eRooms').value);
+  fd.append('gender_preference', document.getElementById('eGender').value);
+  fd.append('status',            document.getElementById('eStatus').value);
+  fd.append('description',       document.getElementById('eDesc').value.trim());
+  fd.append('amenities',         document.getElementById('eAmenities').value);
+
+  const files = document.getElementById('editPhotoInput').files;
+  for (let i = 0; i < Math.min(files.length, 6); i++) fd.append('photos[]', files[i]);
+
+  try {
+    const data = await API.postForm('/lodge_update.php', fd);
+    if (data.success) {
+      toast('Lodge updated!', 'success');
+      loadMyLodges();
+      setTimeout(() => showSection('my-lodges'), 800);
+    } else toast(data.error || 'Update failed', 'error');
+  } catch { toast('Network error', 'error'); }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save changes';
+});
+
+// ── Delete ──────────────────────────────────────────────
+function confirmDelete(id, name) {
+  deletePendingId = id;
+  document.getElementById('deleteLodgeName').textContent = name;
+  openModal('deleteModal');
+}
+document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+  if (!deletePendingId) return;
+  const btn = document.getElementById('confirmDeleteBtn');
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  try {
+    const data = await API.post('/lodge_delete.php', { lodge_id: deletePendingId });
+    if (data.success) {
+      toast('Lodge deleted', 'success');
+      closeModal('deleteModal');
+      loadMyLodges();
+    } else toast(data.error || 'Delete failed', 'error');
+  } catch { toast('Network error', 'error'); }
+  btn.disabled = false; btn.textContent = 'Yes, delete it';
+  deletePendingId = null;
+});
+
+// ── Notifications ───────────────────────────────────────
+async function loadNotifications() {
+  const list = document.getElementById('notifList');
+  try {
+    const data = await API.get('/notifications.php');
+    const notifs = data.notifications || [];
+    const unread = data.unread_count || 0;
+    const badge = document.getElementById('notifBadge');
+    const dot   = document.getElementById('topbarNotifDot');
+    if (unread > 0) { badge?.classList.remove('hidden'); if(badge) badge.textContent=unread; dot?.classList.remove('hidden'); }
+    else { badge?.classList.add('hidden'); dot?.classList.add('hidden'); }
+    if (!notifs.length) { list.innerHTML = '<div class="empty-state"><i class="far fa-bell"></i><p>No notifications yet.</p></div>'; return; }
+    list.innerHTML = notifs.map(n => `
+      <div class="notif-item ${n.is_read?'':'unread'}">
+        <div class="notif-icon"><i class="fas fa-info-circle"></i></div>
+        <div class="notif-body">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-msg">${n.message}</div>
+          <div class="notif-time">${fmt.ago(n.created_at)}</div>
+        </div>
+      </div>`).join('');
+  } catch { list.innerHTML = '<div class="empty-state"><p>Failed to load.</p></div>'; }
+}
+async function markAllRead() {
+  await API.post('/notifications.php', { action:'mark_read' });
+  loadNotifications();
+  toast('All marked as read', 'success', 2000);
+}
+
+// ── Profile ─────────────────────────────────────────────
+function previewAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    ['sidebarAvatar','topbarAvatar','profileAvatarDisplay'].forEach(id => {
+      const el = document.getElementById(id);
+      el.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    });
+  };
+  reader.readAsDataURL(file);
+}
+document.getElementById('profileForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('profileSaveBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+  const fd = new FormData();
+  fd.append('token', Auth.get('token'));
+  fd.append('bio', document.getElementById('pBio').value);
+  const f = document.getElementById('avatarInput').files[0];
+  if (f) fd.append('profile_image', f);
+  try {
+    const data = await API.postForm('/profile.php', fd);
+    if (data.success) toast('Profile saved!', 'success');
+    else toast(data.error || 'Save failed', 'error');
+  } catch { toast('Network error', 'error'); }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save';
+});
+
+function resetAddForm() {
+  document.getElementById('photoPreviews').innerHTML = '';
+  document.querySelectorAll('#amenityPills .amenity-pill').forEach(p => p.classList.remove('selected'));
+  document.getElementById('aAmenities').value = '';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="LodgeKonnect — Find your perfect lodge and roommate near FUTO. Eziobodo & Umuchima listings, smart matching, made for students.">
+<title>LodgeKonnect — Lodge & Roommate Finder for FUTO Students</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/brand.css">
+<style>
+/* ── Landing-specific ── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 40px;
+  background: rgba(10,15,13,0.7);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  transition: background 0.3s;
+}
+.nav.scrolled { background: rgba(10,15,13,0.95); }
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  background: var(--grad-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+}
+.nav-links { display: flex; gap: 8px; align-items: center; }
+.nav-links a { color: var(--text-secondary); text-decoration: none; padding: 8px 16px; border-radius: var(--r-full); font-size: 0.9rem; transition: color 0.2s; }
+.nav-links a:hover { color: var(--text-primary); }
+
+/* Hero */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items: center;
+  padding: 120px 40px 80px;
+  position: relative; z-index: 1;
+  max-width: 1200px; margin: 0 auto;
+}
+.hero-tint {
+  position: fixed;
+  top: 0; left: 0; right: 0; height: 100vh;
+  background: radial-gradient(ellipse at 20% 40%, rgba(22,163,74,0.12) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-content { max-width: 680px; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(22,163,74,0.15);
+  border: 1px solid rgba(22,163,74,0.3);
+  border-radius: var(--r-full);
+  padding: 6px 16px;
+  font-size: 0.82rem;
+  color: #86EFAC;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.hero h1 { margin-bottom: 20px; }
+.hero h1 span { display: block; }
+.hero p { font-size: 1.15rem; color: var(--text-secondary); margin-bottom: 36px; max-width: 520px; line-height: 1.7; }
+.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* Floating card mockup */
+.hero-visual {
+  position: absolute;
+  right: 40px; top: 50%;
+  transform: translateY(-50%);
+  width: 380px;
+  pointer-events: none;
+}
+.float-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 20px;
+  backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-card);
+  animation: hero-float 5s ease-in-out infinite;
+}
+.float-card-2 {
+  margin-top: -24px;
+  margin-left: 40px;
+  animation-delay: -2.5s;
+}
+@keyframes hero-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+.mini-lodge { display: flex; gap: 12px; align-items: center; }
+.mini-lodge-img { width: 56px; height: 56px; border-radius: var(--r-sm); background: var(--grad-card); border: 1px solid var(--border); display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:1.4rem; }
+.mini-lodge-info h5 { font-size: 0.9rem; margin-bottom: 4px; }
+.mini-lodge-price { font-family: var(--font-display); font-size: 1rem; font-weight: 700; background: var(--grad-main); -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.pill-row { display:flex;gap:6px;flex-wrap:wrap;margin-top:10px; }
+.pill { background:rgba(22,163,74,0.12);border:1px solid rgba(22,163,74,0.25);border-radius:var(--r-full);padding:3px 10px;font-size:0.72rem;color:#4ADE80; }
+
+/* Stats bar */
+.stats-bar {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; gap: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  backdrop-filter: var(--blur);
+}
+.stat-item { flex: 1; padding: 28px 24px; text-align: center; border-right: 1px solid var(--border); }
+.stat-item:last-child { border-right: none; }
+.stat-item .num { font-family:var(--font-display);font-size:2.2rem;font-weight:800; background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.stat-item .lbl { font-size:0.82rem;color:var(--text-muted);margin-top:4px; }
+
+/* Section */
+.section-wrap { max-width:1200px;margin:0 auto;padding:80px 40px; position:relative;z-index:1; }
+.section-label { font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#4ADE80;margin-bottom:12px; }
+.section-title { margin-bottom:16px; }
+.section-sub { color:var(--text-secondary);max-width:500px;margin-bottom:48px;line-height:1.7; }
+
+/* Feature cards */
+.feat-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px; }
+.feat-card {
+  padding:28px;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  transition:transform 0.25s,box-shadow 0.25s,border-color 0.25s;
+}
+.feat-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-glow);border-color:rgba(22,163,74,0.3);}
+.feat-icon{width:48px;height:48px;border-radius:var(--r-md);background:var(--grad-card);border:1px solid rgba(22,163,74,0.2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:18px;}
+.feat-card h4{margin-bottom:10px;}
+.feat-card p{color:var(--text-secondary);font-size:0.9rem;line-height:1.65;}
+
+/* How it works */
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:24px;counter-reset:step;}
+.step{padding:28px;position:relative;}
+.step::before{counter-increment:step;content:counter(step,'0');font-family:var(--font-display);font-size:4rem;font-weight:800;line-height:1;color:rgba(22,163,74,0.12);position:absolute;top:10px;right:16px;}
+.step-num{width:36px;height:36px;border-radius:50%;background:var(--grad-btn);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:0.9rem;margin-bottom:16px;box-shadow:var(--shadow-btn);}
+.step h4{margin-bottom:8px;}
+.step p{color:var(--text-secondary);font-size:0.88rem;line-height:1.6;}
+
+/* Testimonials */
+.testimonials-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;}
+.testimonial-card{padding:28px;}
+.testimonial-card .stars{color:var(--g-accent);font-size:0.85rem;margin-bottom:14px;}
+.testimonial-card p{color:var(--text-secondary);font-size:0.92rem;line-height:1.7;font-style:italic;margin-bottom:18px;}
+.tc-author{display:flex;align-items:center;gap:12px;}
+.tc-avatar{width:40px;height:40px;border-radius:50%;background:var(--grad-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:0.9rem;}
+.tc-name{font-weight:600;font-size:0.9rem;}
+.tc-sub{font-size:0.78rem;color:var(--text-muted);}
+
+/* CTA section */
+.cta-section{text-align:center;padding:80px 40px;position:relative;z-index:1;}
+.cta-box{max-width:620px;margin:0 auto;padding:56px 48px;background:var(--grad-card);border:1px solid rgba(22,163,74,0.25);border-radius:var(--r-xl);position:relative;overflow:hidden;}
+.cta-box::before{content:'';position:absolute;inset:0;background:var(--grad-main);opacity:0.04;}
+.cta-box h2{margin-bottom:14px;}
+.cta-box p{color:var(--text-secondary);margin-bottom:32px;}
+.cta-box .hero-btns{justify-content:center;}
+
+/* Footer */
+footer{border-top:1px solid var(--border);padding:28px 40px;text-align:center;color:var(--text-muted);font-size:0.85rem;position:relative;z-index:1;}
+footer a{color:var(--text-secondary);text-decoration:none;}
+footer a:hover{color:var(--text-primary);}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+
+@media(max-width:900px){
+  .hero{flex-direction:column;padding:100px 24px 60px;text-align:center;}
+  .hero-visual{display:none;}
+  .hero p{max-width:100%;}
+  .hero-btns{justify-content:center;}
+  .nav{padding:14px 20px;}
+  .stats-bar{flex-wrap:wrap;}
+  .stat-item{min-width:50%;}
+  .section-wrap{padding:60px 24px;}
+  .footer-inner{justify-content:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav" id="mainNav">
+  <a class="nav-logo" href="index.html">⬡ LodgeKonnect</a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="login.html">Log in</a>
+    <a href="signup.html" class="btn btn-primary btn-sm">Get started</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div style="position:relative;z-index:1;">
+  <div class="hero">
+    <div class="hero-content">
+      <div class="hero-eyebrow"><i class="fas fa-map-pin"></i> FUTO · Eziobodo & Umuchima</div>
+      <h1>
+        <span>Find your lodge.</span>
+        <span class="gradient-text">Find your people.</span>
+      </h1>
+      <p>The smartest way for FUTO students to discover verified off-campus lodges and connect with compatible roommates — all in one place.</p>
+      <div class="hero-btns">
+        <a href="signup.html" class="btn btn-primary btn-lg">Start for free <i class="fas fa-arrow-right"></i></a>
+        <a href="login.html" class="btn btn-ghost btn-lg">I already have an account</a>
+      </div>
+    </div>
+
+    <!-- Floating preview cards -->
+    <div class="hero-visual">
+      <div class="float-card">
+        <div class="mini-lodge">
+          <div class="mini-lodge-img"><i class="fas fa-building"></i></div>
+          <div class="mini-lodge-info">
+            <h5>Golden Gate Lodge</h5>
+            <div class="mini-lodge-price">₦80,000/yr</div>
+          </div>
+        </div>
+        <div class="pill-row">
+          <span class="map-pin-chip"><i class="fas fa-map-pin"></i> Eziobodo</span>
+          <span class="pill"><i class="fas fa-wifi"></i> WiFi</span>
+          <span class="badge-verified"><i class="fas fa-check-circle"></i> Verified</span>
+        </div>
+      </div>
+      <div class="float-card float-card-2">
+        <div class="mini-lodge">
+          <div class="mini-lodge-img" style="background:rgba(22,163,74,0.1)"><i class="fas fa-user-friends" style="color:#4ADE80"></i></div>
+          <div class="mini-lodge-info">
+            <h5>Roommate match found!</h5>
+            <div style="font-size:0.8rem;color:var(--text-secondary)">98% compatibility · EEE 400L</div>
+          </div>
+        </div>
+        <div class="pill-row">
+          <span class="pill">Quiet hours</span>
+          <span class="pill">Same budget</span>
+          <span class="pill">Night owl</span>
+        </div>
+      </div>
+    </div>
+    <div class="trust-strip" style="margin-top:20px;">
+      <span><i class="fas fa-shield-alt"></i> Verified Caretakers</span>
+      <span><i class="fas fa-home"></i> 500+ Students Housed</span>
+      <span><i class="fas fa-map-marker-alt"></i> Eziobodo &amp; Umuchima</span>
+      <span><i class="fas fa-star"></i> 4.9★ Rated</span>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div style="padding:0 40px 60px;position:relative;z-index:1;">
+  <div class="stats-bar">
+    <div class="stat-item"><div class="num">500+</div><div class="lbl">Lodges listed</div></div>
+    <div class="stat-item"><div class="num">1,200+</div><div class="lbl">Students matched</div></div>
+    <div class="stat-item"><div class="num">2</div><div class="lbl">Locations covered</div></div>
+    <div class="stat-item"><div class="num">4.9★</div><div class="lbl">Average rating</div></div>
+  </div>
+</div>
+
+<!-- Features -->
+<section id="features" class="section-wrap">
+  <div class="section-label">Why LodgeKonnect</div>
+  <h2 class="section-title">Built different, for FUTO</h2>
+  <p class="section-sub">Every feature was designed around one real question: how do FUTO students actually find a place to live?</p>
+
+  <div class="feat-grid">
+    <div class="feat-card glass">
+      <div class="feat-icon"><i class="fas fa-search" style="background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i></div>
+      <h4>Smart lodge search</h4>
+      <p>Filter by price, location, gender preference, and amenities. Real photos, real prices — no surprises.</p>
+    </div>
+    <div class="feat-card glass">
+      <div class="feat-icon"><i class="fas fa-users" style="color:#4ADE80"></i></div>
+      <h4>Roommate matching</h4>
+      <p>Set your sleep schedule, noise tolerance, and budget. We surface students who actually fit your lifestyle.</p>
+    </div>
+    <div class="feat-card glass">
+      <div class="feat-icon"><i class="fas fa-images" style="color:#4ADE80"></i></div>
+      <h4>Photo galleries</h4>
+      <p>Full lodge photo galleries with lightbox previews. See the bathroom, the ceiling, everything — before you visit.</p>
+    </div>
+    <div class="feat-card glass">
+      <div class="feat-icon"><i class="fas fa-bell" style="color:var(--g-accent)"></i></div>
+      <h4>Real-time notifications</h4>
+      <p>Get notified when a new lodge drops in your price range or a compatible roommate creates a profile.</p>
+    </div>
+    <div class="feat-card glass">
+      <div class="feat-icon"><i class="fas fa-shield-alt" style="color:var(--g-success)"></i></div>
+      <h4>Verified caretakers</h4>
+      <p>Caretakers register with contact details. You can reach them directly — no middleman, no hidden fees.</p>
+    </div>
+    <div class="feat-card glass">
+      <div class="feat-icon"><i class="fas fa-heart" style="color:#f472b6"></i></div>
+      <h4>Save favourites</h4>
+      <p>Bookmark lodges and roommate profiles as you browse. Compare them later, on any device.</p>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section id="how" class="section-wrap" style="padding-top:0">
+  <div class="section-label">The process</div>
+  <h2 class="section-title">Up and running in minutes</h2>
+  <p class="section-sub">No complicated setup, no phone calls. Just create an account and go.</p>
+
+  <div class="steps">
+    <div class="step glass">
+      <div class="step-num">1</div>
+      <h4>Create your profile</h4>
+      <p>Sign up as a student or caretaker. Fill in your details, preferences, and budget once.</p>
+    </div>
+    <div class="step glass">
+      <div class="step-num">2</div>
+      <h4>Browse or list</h4>
+      <p>Students search and filter lodges. Caretakers upload listings with photos and pricing.</p>
+    </div>
+    <div class="step glass">
+      <div class="step-num">3</div>
+      <h4>Find your match</h4>
+      <p>Use the roommate finder to connect with students who share your budget and habits.</p>
+    </div>
+    <div class="step glass">
+      <div class="step-num">4</div>
+      <h4>Move in</h4>
+      <p>Contact the caretaker directly, settle payment offline, and move into your new place.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section-wrap" style="padding-top:0">
+  <div class="section-label">Student stories</div>
+  <h2 class="section-title">Real students, real moves</h2>
+  <div class="testimonials-grid" style="margin-top:40px;">
+    <div class="testimonial-card glass">
+      <div class="stars">★★★★★</div>
+      <p>"Found my lodge in Eziobodo in under 10 minutes. The photo gallery saved me from visiting a bad place first."</p>
+      <div class="tc-author"><div class="tc-avatar">CO</div><div><div class="tc-name">Chinedu Okafor</div><div class="tc-sub">Biology · 300L</div></div></div>
+    </div>
+    <div class="testimonial-card glass">
+      <div class="stars">★★★★★</div>
+      <p>"The roommate matcher actually works. My flatmate and I matched on budget AND sleep schedule. We've been inseparable."</p>
+      <div class="tc-author"><div class="tc-avatar">AE</div><div><div class="tc-name">Adaora Eze</div><div class="tc-sub">Public Health · 200L</div></div></div>
+    </div>
+    <div class="testimonial-card glass">
+      <div class="stars">★★★★★</div>
+      <p>"As a caretaker, posting my lodge here got me tenants faster than any WhatsApp group ever did."</p>
+      <div class="tc-author"><div class="tc-avatar">BN</div><div><div class="tc-name">Barr. Nwosu</div><div class="tc-sub">Caretaker · Umuchima</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-box">
+    <h2>Ready to find your place?</h2>
+    <p>Join thousands of FUTO students already using LodgeKonnect. It's completely free.</p>
+    <div class="hero-btns">
+      <a href="signup.html" class="btn btn-primary btn-lg">Create free account</a>
+      <a href="login.html" class="btn btn-ghost btn-lg">Log in</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <span class="nav-logo">⬡ LodgeKonnect</span>
+    <span>Made with ❤️ for FUTO students · Eziobodo & Umuchima</span>
+    <div style="display:flex;gap:16px;"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a></div>
+  </div>
+</footer>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <button class="lb-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+  <button class="lb-arrow lb-prev" onclick="lbNav(-1)"><i class="fas fa-chevron-left"></i></button>
+  <img src="" alt="Preview">
+  <button class="lb-arrow lb-next" onclick="lbNav(1)"><i class="fas fa-chevron-right"></i></button>
+</div>
+
+<script src="assets/js/app.js"></script>
+<script>
+  // Redirect if already logged in
+  if (Auth.get('token') && Auth.get('type')) {
+    location.href = Auth.get('type') === 'caretaker' ? 'dashboardcaretaker.html' : 'dashboard.html';
+  }
+
+  // Navbar scroll effect
+  window.addEventListener('scroll', () => {
+    document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Animate elements on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feat-card, .step, .testimonial-card, .stat-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>

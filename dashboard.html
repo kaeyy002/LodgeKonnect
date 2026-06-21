@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Dashboard — LodgeKonnect</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="assets/css/brand.css">
+<style>
+/* ── Layout ── */
+.app{display:flex;min-height:100vh;position:relative;z-index:1;}
+
+/* Sidebar */
+.sidebar{width:260px;flex-shrink:0;background:var(--bg-sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;backdrop-filter:var(--blur);transition:transform 0.3s;}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);}
+.sidebar-logo a{font-family:var(--font-display);font-size:1.3rem;font-weight:800;background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);}
+.sidebar-user .info .name{font-weight:600;font-size:0.9rem;}
+.sidebar-user .info .role{font-size:0.75rem;color:var(--text-muted);}
+nav.sidebar-nav{flex:1;overflow-y:auto;padding:12px 10px;}
+.nav-group-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);padding:12px 10px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-sm);color:var(--text-secondary);font-size:0.88rem;font-weight:500;cursor:pointer;transition:all 0.2s;position:relative;border:none;background:none;width:100%;text-align:left;}
+.nav-item:hover{background:var(--bg-card-hover);color:var(--text-primary);}
+.nav-item.active{background:rgba(22,163,74,0.15);color:#86EFAC;border:1px solid rgba(22,163,74,0.2);}
+.nav-item.active i{background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-item .badge-count{margin-left:auto;background:var(--g-danger);color:#fff;border-radius:var(--r-full);font-size:0.68rem;font-weight:700;padding:1px 6px;min-width:18px;text-align:center;}
+.sidebar-footer{padding:16px 10px;border-top:1px solid var(--border);}
+
+/* Main */
+.main{margin-left:260px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(10,15,13,0.85);backdrop-filter:var(--blur);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.topbar-search{flex:1;max-width:360px;position:relative;}
+.topbar-search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.85rem;}
+.topbar-search input{padding:9px 12px 9px 36px;font-size:0.88rem;border-radius:var(--r-full);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.icon-btn{width:38px;height:38px;border-radius:50%;background:var(--bg-input);border:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;font-size:0.9rem;}
+.icon-btn:hover{border-color:var(--g-mid);color:var(--text-primary);}
+
+.page-content{flex:1;padding:32px;}
+.section{display:none;animation:fadeUp 0.3s ease;}
+.section.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.page-header{margin-bottom:28px;}
+.page-header h2{margin-bottom:4px;}
+.page-header p{color:var(--text-secondary);font-size:0.9rem;}
+
+/* Welcome */
+.welcome-banner{background:var(--grad-card);border:1px solid rgba(22,163,74,0.2);border-radius:var(--r-xl);padding:32px;margin-bottom:28px;position:relative;overflow:hidden;}
+.welcome-banner::before{content:'⬡';position:absolute;right:-20px;top:-30px;font-size:10rem;opacity:0.05;line-height:1;}
+.welcome-banner h2{margin-bottom:6px;}
+.welcome-banner p{color:var(--text-secondary);max-width:480px;}
+.welcome-banner .hero-btns{margin-top:20px;}
+.quick-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:28px;}
+.qa-card{glass;padding:20px;text-align:center;cursor:pointer;transition:all 0.25s;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);backdrop-filter:var(--blur);}
+.qa-card:hover{border-color:rgba(22,163,74,0.35);transform:translateY(-3px);box-shadow:var(--shadow-glow);}
+.qa-card i{font-size:1.6rem;margin-bottom:10px;display:block;background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.qa-card span{font-size:0.82rem;font-weight:600;color:var(--text-secondary);}
+
+/* Lodge detail modal */
+.lodge-detail-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px;}
+.lodge-detail-gallery img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r-sm);cursor:pointer;border:1px solid var(--border);transition:opacity 0.2s;}
+.lodge-detail-gallery img:first-child{grid-column:1/-1;aspect-ratio:16/9;}
+.lodge-detail-gallery img:hover{opacity:0.85;}
+.lodge-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
+.info-chip{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;}
+.info-chip .label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}
+.info-chip .value{font-weight:600;font-size:0.95rem;}
+
+/* Roommate card */
+.roommate-card{display:flex;gap:14px;align-items:flex-start;padding:18px;}
+.roommate-card .rm-info{flex:1;}
+.roommate-card .rm-name{font-weight:700;margin-bottom:3px;}
+.roommate-card .rm-meta{font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;}
+.roommate-card .rm-bio{font-size:0.85rem;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;}
+.rm-prefs{display:flex;gap:6px;flex-wrap:wrap;}
+.rm-pref{background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.2);border-radius:var(--r-full);padding:3px 10px;font-size:0.72rem;color:var(--g-mid);}
+
+/* Notif panel */
+.notif-list{display:flex;flex-direction:column;gap:8px;}
+.notif-item{display:flex;gap:12px;padding:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);transition:background 0.2s;cursor:pointer;}
+.notif-item.unread{border-color:rgba(22,163,74,0.3);background:rgba(22,163,74,0.06);}
+.notif-item:hover{background:var(--bg-card-hover);}
+.notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.notif-icon.new_lodge{background:rgba(16,185,129,0.15);color:var(--g-success);}
+.notif-icon.match{background:rgba(22,163,74,0.15);color:#86EFAC;}
+.notif-icon.system{background:rgba(22,163,74,0.12);color:var(--g-mid);}
+.notif-body{flex:1;}
+.notif-title{font-weight:600;font-size:0.88rem;margin-bottom:2px;}
+.notif-msg{font-size:0.82rem;color:var(--text-secondary);}
+.notif-time{font-size:0.72rem;color:var(--text-muted);margin-top:4px;}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:var(--g-start);flex-shrink:0;margin-top:5px;}
+
+/* Profile form */
+.profile-avatar-wrap{display:flex;align-items:center;gap:20px;margin-bottom:28px;}
+.avatar-upload-btn{position:relative;cursor:pointer;}
+.avatar-upload-btn input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.avatar-edit-icon{position:absolute;bottom:2px;right:2px;width:24px;height:24px;background:var(--grad-btn);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#fff;border:2px solid var(--bg-base);}
+
+/* Hamburger */
+.hamburger{display:none;width:38px;height:38px;border-radius:50%;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);align-items:center;justify-content:center;cursor:pointer;font-size:1rem;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:190;backdrop-filter:blur(3px);}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;}
+  .main{margin-left:0;}
+  .hamburger{display:flex;}
+  .page-content{padding:20px 16px;}
+  .topbar{padding:12px 16px;}
+  .lodge-detail-gallery{grid-template-columns:1fr 1fr;}
+  .lodge-detail-gallery img:first-child{grid-column:1/-1;}
+  .lodge-info-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <a href="index.html">⬡ LodgeKonnect</a>
+    </div>
+    <div class="sidebar-user">
+      <div class="avatar" id="sidebarAvatar">?</div>
+      <div class="info">
+        <div class="name" id="sidebarName">Student</div>
+        <div class="role">Student account</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Main</div>
+      <button class="nav-item active" onclick="showSection('welcome')"><i class="fas fa-home"></i> Home</button>
+      <button class="nav-item" onclick="showSection('lodges')"><i class="fas fa-search"></i> Browse Lodges</button>
+      <button class="nav-item" onclick="showSection('roommates')"><i class="fas fa-users"></i> Find Roommates</button>
+      <button class="nav-item" onclick="showSection('favorites')"><i class="fas fa-heart"></i> Favourites</button>
+
+      <div class="nav-group-label">My Activity</div>
+      <button class="nav-item" id="notifNavBtn" onclick="showSection('notifications')">
+        <i class="fas fa-bell"></i> Notifications
+        <span class="badge-count hidden" id="notifBadge">0</span>
+      </button>
+      <button class="nav-item" onclick="showSection('profile')"><i class="fas fa-user-circle"></i> My Profile</button>
+      <button class="nav-item" onclick="showSection('matching')"><i class="fas fa-sliders-h"></i> Matching Prefs</button>
+
+      <div class="nav-group-label">Account</div>
+      <button class="nav-item" onclick="showSection('settings')"><i class="fas fa-cog"></i> Settings</button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="nav-item btn-danger" onclick="Auth.logout()" style="color:var(--g-danger);width:100%;"><i class="fas fa-sign-out-alt"></i> Log out</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main">
+    <!-- Top bar -->
+    <div class="topbar">
+      <button class="hamburger" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="topbar-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="globalSearch" placeholder="Search lodges, roommates…" oninput="handleGlobalSearch(this.value)">
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="showSection('notifications')" title="Notifications" style="position:relative;">
+          <i class="fas fa-bell"></i>
+          <span class="notif-dot hidden" id="topbarNotifDot"></span>
+        </button>
+        <button class="icon-btn" onclick="showSection('favorites')" title="Favourites"><i class="fas fa-heart"></i></button>
+        <div class="avatar" id="topbarAvatar" onclick="showSection('profile')" style="cursor:pointer;width:38px;height:38px;font-size:0.9rem;">?</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- ── Welcome ── -->
+      <section id="welcome" class="section active">
+        <div class="welcome-banner">
+          <h2>Hey, <span id="welcomeName">there</span> 👋</h2>
+          <p>Welcome to LodgeKonnect. Find your next lodge in Eziobodo or Umuchima, or discover a compatible roommate.</p>
+          <div class="hero-btns">
+            <button class="btn btn-primary" onclick="showSection('lodges')"><i class="fas fa-search"></i> Browse Lodges</button>
+            <button class="btn btn-ghost" onclick="showSection('roommates')"><i class="fas fa-users"></i> Find Roommates</button>
+          </div>
+        </div>
+        <div class="quick-actions">
+          <div class="qa-card" onclick="showSection('lodges')"><i class="fas fa-building"></i><span>All Lodges</span></div>
+          <div class="qa-card" onclick="filterByLocation('eziobodo')"><i class="fas fa-map-pin"></i><span>Eziobodo</span></div>
+          <div class="qa-card" onclick="filterByLocation('umuchima')"><i class="fas fa-map-pin"></i><span>Umuchima</span></div>
+          <div class="qa-card" onclick="showSection('roommates')"><i class="fas fa-user-friends"></i><span>Roommates</span></div>
+          <div class="qa-card" onclick="showSection('favorites')"><i class="fas fa-heart"></i><span>Favourites</span></div>
+          <div class="qa-card" onclick="showSection('matching')"><i class="fas fa-sliders-h"></i><span>My Prefs</span></div>
+        </div>
+        <div>
+          <div class="flex justify-between items-center mb-4">
+            <h3>Recent Lodges</h3>
+            <button class="btn btn-ghost btn-sm" onclick="showSection('lodges')">View all <i class="fas fa-arrow-right"></i></button>
+          </div>
+          <div class="card-grid" id="recentLodges"><div class="loading-overlay"><div class="spinner"></div><span>Loading lodges…</span></div></div>
+        </div>
+      </section>
+
+      <!-- ── Browse Lodges ── -->
+      <section id="lodges" class="section">
+        <div class="page-header">
+          <h2>Browse Lodges</h2>
+          <p>Verified lodges near FUTO — Eziobodo & Umuchima</p>
+        </div>
+        <div class="filters-bar">
+          <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="lodgeSearch" placeholder="Search by name, location…" oninput="debouncedLodgeSearch()"></div>
+          <select id="filterLocation" onchange="loadLodges()">
+            <option value="">All locations</option>
+            <option value="eziobodo">Eziobodo</option>
+            <option value="umuchima">Umuchima</option>
+          </select>
+          <select id="filterGender" onchange="loadLodges()">
+            <option value="">Any gender</option>
+            <option value="male">Male only</option>
+            <option value="female">Female only</option>
+            <option value="any">Mixed</option>
+          </select>
+          <input type="number" id="filterMaxPrice" placeholder="Max price (₦)" onchange="loadLodges()" style="max-width:150px;">
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()"><i class="fas fa-times"></i> Clear</button>
+        </div>
+        <div class="card-grid" id="lodgeGrid"><div class="loading-overlay"><div class="spinner"></div><span>Loading…</span></div></div>
+      </section>
+
+      <!-- ── Find Roommates ── -->
+      <section id="roommates" class="section">
+        <div class="page-header">
+          <h2>Find Roommates</h2>
+          <p>Connect with FUTO students looking for a flatmate</p>
+        </div>
+        <div class="filters-bar">
+          <div class="search-wrap"><i class="fas fa-search"></i><input type="text" id="roommateSearch" placeholder="Search by name, department, bio…" oninput="debouncedRoommateSearch()"></div>
+          <select id="rmFilterGender" onchange="loadRoommates()">
+            <option value="">Any gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+          <select id="rmFilterLevel" onchange="loadRoommates()">
+            <option value="">Any level</option>
+            <option value="100L">100L</option><option value="200L">200L</option>
+            <option value="300L">300L</option><option value="400L">400L</option>
+            <option value="500L">500L</option>
+          </select>
+          <input type="number" id="rmFilterBudget" placeholder="Max budget (₦)" onchange="loadRoommates()" style="max-width:150px;">
+        </div>
+        <div id="roommateGrid" class="card-grid"><div class="loading-overlay"><div class="spinner"></div><span>Loading…</span></div></div>
+      </section>
+
+      <!-- ── Favourites ── -->
+      <section id="favorites" class="section">
+        <div class="page-header">
+          <h2>Favourites</h2>
+          <p>Lodges you've saved for later</p>
+        </div>
+        <div class="card-grid" id="favGrid"></div>
+      </section>
+
+      <!-- ── Notifications ── -->
+      <section id="notifications" class="section">
+        <div class="page-header flex justify-between items-center">
+          <div><h2>Notifications</h2><p>Stay updated on new lodges and matches</p></div>
+          <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notif-list" id="notifList"><div class="loading-overlay"><div class="spinner"></div><span>Loading…</span></div></div>
+      </section>
+
+      <!-- ── Profile ── -->
+      <section id="profile" class="section">
+        <div class="page-header"><h2>My Profile</h2><p>Update your details and profile photo</p></div>
+        <div style="max-width:560px;">
+          <div class="profile-avatar-wrap">
+            <div style="position:relative;">
+              <div class="avatar xl" id="profileAvatarDisplay">?</div>
+              <label class="avatar-upload-btn" title="Change photo">
+                <div class="avatar-edit-icon"><i class="fas fa-camera"></i></div>
+                <input type="file" accept="image/*" id="avatarInput" onchange="previewAvatar(this)">
+              </label>
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:1.1rem;" id="profileNameDisplay">—</div>
+              <div style="color:var(--text-muted);font-size:0.85rem;" id="profileEmailDisplay">—</div>
+              <div class="badge badge-green mt-2">Student</div>
+            </div>
+          </div>
+          <form id="profileForm">
+            <div class="grid-2">
+              <div class="form-group"><label>Department</label><input type="text" id="pDept" placeholder="e.g. Computer Science"></div>
+              <div class="form-group"><label>Level</label>
+                <select id="pLevel"><option value="">Select level</option>
+                  <option>100L</option><option>200L</option><option>300L</option><option>400L</option><option>500L</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group"><label>Bio (appears on roommate profile)</label><textarea id="pBio" placeholder="Tell others a bit about yourself…"></textarea></div>
+            <div class="form-group"><label>Monthly budget for accommodation (₦)</label><input type="number" id="pBudget" placeholder="e.g. 80000" min="0"></div>
+            <button type="submit" class="btn btn-primary" id="profileSaveBtn" style="justify-content:center;width:auto;padding:12px 32px;">
+              <i class="fas fa-save"></i> Save changes
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── Matching Preferences ── -->
+      <section id="matching" class="section">
+        <div class="page-header"><h2>Matching Preferences</h2><p>Control how you appear to other students looking for roommates</p></div>
+        <div style="max-width:560px;">
+          <div style="background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.25);border-radius:var(--r-lg);padding:18px;margin-bottom:24px;display:flex;align-items:center;gap:14px;">
+            <i class="fas fa-info-circle" style="color:#86EFAC;font-size:1.2rem;"></i>
+            <p style="font-size:0.87rem;color:var(--text-secondary);">Toggle your visibility on. Other students will see your name, department, bio, and preferences — not your contact info.</p>
+          </div>
+          <form id="matchingForm">
+            <div class="form-group" style="flex-direction:row;align-items:center;justify-content:space-between;padding:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);">
+              <div>
+                <div style="font-weight:600;font-size:0.95rem;">Show me in roommate search</div>
+                <div style="font-size:0.8rem;color:var(--text-muted);">Opt-in to appear in others' searches</div>
+              </div>
+              <label style="position:relative;display:inline-block;width:50px;height:26px;flex-shrink:0;">
+                <input type="checkbox" id="matchingToggle" style="opacity:0;width:0;height:0;position:absolute;">
+                <span id="matchingSlider" onclick="toggleMatching()" style="position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:13px;transition:0.3s;"></span>
+              </label>
+            </div>
+            <div class="form-group mt-3"><label>Roommate bio (what you want a potential roommate to know)</label><textarea id="mBio" placeholder="e.g. I'm a quiet 300L student who studies late. Looking for someone clean and respectful." rows="4"></textarea></div>
+            <div style="margin-bottom:18px;">
+              <label style="display:block;font-size:0.85rem;color:var(--text-secondary);font-weight:500;margin-bottom:10px;">My habits & preferences</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="prefCheckboxes"></div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="justify-content:center;padding:12px 32px;"><i class="fas fa-save"></i> Save preferences</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ── Settings ── -->
+      <section id="settings" class="section">
+        <div class="page-header"><h2>Settings</h2><p>Manage your account</p></div>
+        <div style="max-width:480px;display:flex;flex-direction:column;gap:12px;">
+          <div class="glass" style="padding:20px;">
+            <h4 style="margin-bottom:4px;">Account info</h4>
+            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">Your registered details</p>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:0.88rem;">
+              <div class="flex justify-between"><span style="color:var(--text-muted);">Name</span><span id="settingsName">—</span></div>
+              <div class="flex justify-between"><span style="color:var(--text-muted);">Email</span><span id="settingsEmail">—</span></div>
+              <div class="flex justify-between"><span style="color:var(--text-muted);">Phone</span><span id="settingsPhone">—</span></div>
+            </div>
+          </div>
+          <div class="glass" style="padding:20px;">
+            <h4 style="margin-bottom:12px;">Danger zone</h4>
+            <button class="btn btn-danger btn-sm" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Log out of this device</button>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- end page-content -->
+  </div><!-- end main -->
+</div>
+
+<!-- ── Lodge detail modal ── -->
+<div class="modal-overlay" id="lodgeModal">
+  <div class="modal-box wide">
+    <div class="modal-header">
+      <h3 id="lodgeModalTitle">Lodge Details</h3>
+      <button class="modal-close" onclick="closeModal('lodgeModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="lodgeModalBody"></div>
+  </div>
+</div>
+
+<!-- ── Roommate detail modal ── -->
+<div class="modal-overlay" id="roommateModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Roommate Profile</h3>
+      <button class="modal-close" onclick="closeModal('roommateModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="roommateModalBody"></div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <button class="lb-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+  <button class="lb-arrow lb-prev" onclick="lbNav(-1)"><i class="fas fa-chevron-left"></i></button>
+  <img src="" alt="Preview">
+  <button class="lb-arrow lb-next" onclick="lbNav(1)"><i class="fas fa-chevron-right"></i></button>
+</div>
+<div id="toast-container"></div>
+
+<script src="assets/js/app.js"></script>
+<script>
+// ── Auth guard ──────────────────────────────────────────
+(async () => {
+  const valid = await Auth.verify();
+  if (!valid) { Auth.clear(); location.href = 'login.html'; }
+})();
+
+// ── State ───────────────────────────────────────────────
+let allLodges = [], favorites = new Set(JSON.parse(localStorage.getItem('lk_favs') || '[]'));
+const PREFS_LIST = ['Early bird','Night owl','Quiet environment','Social/talkative','Clean & tidy','Pet-friendly','No visitors','Religious','Cooks often','Study-focused'];
+
+// ── Init ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const name = Auth.get('name') || 'Student';
+  document.getElementById('welcomeName').textContent = name.split(' ')[0];
+  document.getElementById('sidebarName').textContent = name;
+  document.getElementById('profileNameDisplay').textContent = name;
+  document.getElementById('profileEmailDisplay').textContent = Auth.get('email') || '';
+  document.getElementById('settingsName').textContent = name;
+  document.getElementById('settingsEmail').textContent = Auth.get('email') || '';
+  document.getElementById('settingsPhone').textContent = Auth.get('phone') || '';
+
+  // Set avatars
+  const av = Auth.get('avatar');
+  const initials = fmt.initials(name);
+  ['sidebarAvatar','topbarAvatar','profileAvatarDisplay'].forEach(id => {
+    const el = document.getElementById(id);
+    if (av) { const img = document.createElement('img'); img.src = av; img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%;'; el.innerHTML=''; el.appendChild(img); }
+    else { el.textContent = initials; }
+  });
+
+  // Pre-fill profile fields
+  document.getElementById('pDept').value = Auth.get('dept') || '';
+  document.getElementById('pLevel').value = Auth.get('level') || '';
+
+  buildPrefCheckboxes();
+  loadLodges();
+  loadNotifications();
+});
+
+// ── Navigation ──────────────────────────────────────────
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const sec = document.getElementById(id);
+  if (sec) sec.classList.add('active');
+  const btn = document.querySelector(`.nav-item[onclick="showSection('${id}')"]`);
+  if (btn) btn.classList.add('active');
+  closeSidebar();
+
+  // Lazy load on section open
+  if (id === 'lodges' && allLodges.length === 0) loadLodges();
+  if (id === 'roommates') loadRoommates();
+  if (id === 'favorites') renderFavorites();
+  if (id === 'notifications') loadNotifications();
+  if (id === 'profile') loadProfile();
+  if (id === 'matching') loadMatching();
+}
+
+function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
+
+// ── Lodges ──────────────────────────────────────────────
+const debouncedLodgeSearch = debounce(() => loadLodges(), 400);
+
+async function loadLodges() {
+  const grid = document.getElementById('lodgeGrid');
+  if (grid) showLoader(grid);
+  const params = {
+    q:         document.getElementById('lodgeSearch')?.value || '',
+    location:  document.getElementById('filterLocation')?.value || '',
+    gender:    document.getElementById('filterGender')?.value || '',
+    max_price: document.getElementById('filterMaxPrice')?.value || '',
+  };
+  try {
+    const data = await API.get('/lodges.php', params);
+    allLodges = data.lodges || [];
+    if (grid) renderLodgeGrid(allLodges, grid);
+    // Also populate recent lodges on welcome
+    const recent = document.getElementById('recentLodges');
+    if (recent) renderLodgeGrid(allLodges.slice(0, 6), recent);
+  } catch {
+    if (grid) grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Failed to load lodges. Check your connection.</p></div>';
+  }
+}
+
+function renderLodgeGrid(lodges, container) {
+  if (!lodges.length) {
+    container.innerHTML = '<div class="empty-state"><i class="fas fa-building"></i><p>No lodges found. Try different filters.</p></div>';
+    return;
+  }
+  container.innerHTML = lodges.map(l => lodgeCard(l)).join('');
+}
+
+function lodgeCard(l) {
+  const photos = Array.isArray(l.photos) ? l.photos : [];
+  const isFav = favorites.has(String(l.id));
+  const statusClass = l.status === 'active' ? 'badge-green' : l.status === 'occupied' ? 'badge-red' : 'badge-amber';
+  const imgHtml = photos[0]
+    ? `<img src="${photos[0]}" alt="${l.lodge_name}" loading="lazy">`
+    : `<i class="fas fa-building"></i>`;
+  return `<div class="lodge-card glass" onclick="openLodgeDetail(${l.id})">
+    <div class="card-img">${imgHtml}</div>
+    <button class="btn-fav ${isFav?'active':''}" onclick="toggleFav(event,${l.id})" title="${isFav?'Remove from favourites':'Save to favourites'}">
+      <i class="fa${isFav?'s':'r'} fa-heart"></i>
+    </button>
+    <div class="card-body">
+      <div class="flex justify-between items-center mb-1">
+        <h4>${l.lodge_name}</h4>
+        <span class="badge ${statusClass}">${l.status}</span>
+      </div>
+      <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:8px;"><i class="fas fa-map-pin" style="color:var(--g-mid);margin-right:4px;"></i>${l.location}</div>
+      <div class="card-meta">
+        ${l.gender_preference !== 'any' ? `<span class="badge badge-green">${l.gender_preference} only</span>` : ''}
+        ${l.room_number ? `<span class="badge badge-amber">${l.room_number} rooms</span>` : ''}
+      </div>
+      <div class="card-price">${fmt.currency(l.price)}<span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);"> /yr</span></div>
+    </div>
+  </div>`;
+}
+
+async function openLodgeDetail(id) {
+  const lodge = allLodges.find(l => l.id == id);
+  if (!lodge) return;
+  const photos = Array.isArray(lodge.photos) ? lodge.photos : [];
+  document.getElementById('lodgeModalTitle').textContent = lodge.lodge_name;
+  const isFav = favorites.has(String(id));
+
+  const galleryHtml = photos.length
+    ? `<div class="lodge-detail-gallery">${photos.map((p,i) => `<img src="${p}" alt="Photo ${i+1}" onclick="openLightbox(${JSON.stringify(photos)},${i})">`).join('')}</div>`
+    : `<div style="height:180px;display:flex;align-items:center;justify-content:center;background:var(--bg-input);border-radius:var(--r-md);margin-bottom:16px;color:var(--text-muted);"><i class="fas fa-image" style="font-size:2rem;"></i></div>`;
+
+  document.getElementById('lodgeModalBody').innerHTML = `
+    ${galleryHtml}
+    <div class="lodge-info-grid">
+      <div class="info-chip"><div class="label">Price</div><div class="value card-price">${fmt.currency(lodge.price)}/yr</div></div>
+      <div class="info-chip"><div class="label">Location</div><div class="value"><i class="fas fa-map-pin" style="color:var(--g-mid);margin-right:5px;"></i>${lodge.location}</div></div>
+      <div class="info-chip"><div class="label">Status</div><div class="value"><span class="badge ${lodge.status==='active'?'badge-green':lodge.status==='occupied'?'badge-red':'badge-amber'}">${lodge.status}</span></div></div>
+      <div class="info-chip"><div class="label">Gender preference</div><div class="value">${lodge.gender_preference || 'Any'}</div></div>
+      ${lodge.room_number ? `<div class="info-chip"><div class="label">Number of rooms</div><div class="value">${lodge.room_number}</div></div>` : ''}
+      <div class="info-chip"><div class="label">Caretaker</div><div class="value">${lodge.caretaker_name}</div></div>
+    </div>
+    ${lodge.description ? `<div style="margin-bottom:16px;"><div style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Description</div><p style="font-size:0.9rem;color:var(--text-secondary);line-height:1.7;">${lodge.description}</p></div>` : ''}
+    ${lodge.amenities ? `<div style="margin-bottom:16px;"><div style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Amenities</div><div class="rm-prefs">${lodge.amenities.split(',').map(a=>`<span class="rm-pref"><i class="fas fa-check" style="margin-right:4px;"></i>${a.trim()}</span>`).join('')}</div></div>` : ''}
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <a href="tel:${lodge.caretaker_phone}" class="btn btn-primary"><i class="fas fa-phone"></i> Call Caretaker</a>
+      <button class="btn btn-ghost" onclick="toggleFavFromModal(${id})" id="favModalBtn">
+        <i class="fa${isFav?'s':'r'} fa-heart" style="color:${isFav?'var(--g-accent)':''}"></i> ${isFav?'Saved':'Save'}
+      </button>
+    </div>`;
+  openModal('lodgeModal');
+}
+
+// ── Favourites ──────────────────────────────────────────
+function toggleFav(e, id) {
+  e.stopPropagation();
+  const sid = String(id);
+  if (favorites.has(sid)) favorites.delete(sid); else favorites.add(sid);
+  localStorage.setItem('lk_favs', JSON.stringify([...favorites]));
+  // Re-render card in place
+  loadLodges();
+  toast(favorites.has(sid) ? 'Saved to favourites' : 'Removed from favourites', 'info', 2000);
+}
+function toggleFavFromModal(id) {
+  const sid = String(id);
+  if (favorites.has(sid)) favorites.delete(sid); else favorites.add(sid);
+  localStorage.setItem('lk_favs', JSON.stringify([...favorites]));
+  const btn = document.getElementById('favModalBtn');
+  const saved = favorites.has(sid);
+  btn.innerHTML = `<i class="fa${saved?'s':'r'} fa-heart" style="color:${saved?'var(--g-accent)':''}"></i> ${saved?'Saved':'Save'}`;
+  toast(saved ? 'Saved to favourites' : 'Removed', 'info', 1500);
+}
+function renderFavorites() {
+  const grid = document.getElementById('favGrid');
+  const favLodges = allLodges.filter(l => favorites.has(String(l.id)));
+  if (!favLodges.length) {
+    grid.innerHTML = '<div class="empty-state"><i class="far fa-heart"></i><p>No favourites yet. Browse lodges and tap the ♥ to save them here.</p></div>';
+    return;
+  }
+  grid.innerHTML = favLodges.map(l => lodgeCard(l)).join('');
+}
+
+function clearFilters() {
+  ['lodgeSearch','filterLocation','filterGender','filterMaxPrice'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  loadLodges();
+}
+function filterByLocation(loc) {
+  showSection('lodges');
+  setTimeout(() => { document.getElementById('filterLocation').value = loc; loadLodges(); }, 100);
+}
+
+// ── Roommates ───────────────────────────────────────────
+const debouncedRoommateSearch = debounce(() => loadRoommates(), 400);
+
+async function loadRoommates() {
+  const grid = document.getElementById('roommateGrid');
+  showLoader(grid);
+  const params = {
+    q:          document.getElementById('roommateSearch')?.value || '',
+    gender:     document.getElementById('rmFilterGender')?.value || '',
+    level:      document.getElementById('rmFilterLevel')?.value || '',
+    max_budget: document.getElementById('rmFilterBudget')?.value || '',
+  };
+  try {
+    const data = await API.get('/roommates.php', params);
+    const students = (data.students || []).filter(s => s.id != Auth.get('user_id'));
+    if (!students.length) {
+      grid.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>No students found. Try different filters.</p></div>';
+      return;
+    }
+    grid.innerHTML = students.map(s => roommateCard(s)).join('');
+  } catch {
+    grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Failed to load. Try again.</p></div>';
+  }
+}
+
+function roommateCard(s) {
+  const prefs = JSON.parse(s.preferences || '[]');
+  const av = s.profile_image
+    ? `<img src="${s.profile_image}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    : fmt.initials(s.full_name);
+  return `<div class="roommate-card glass" onclick="openRoommateDetail(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+    <div class="avatar lg">${av}</div>
+    <div class="rm-info">
+      <div class="rm-name">${s.full_name}</div>
+      <div class="rm-meta">${[s.gender,s.department,s.level].filter(Boolean).join(' · ')} ${s.budget?'· ₦'+Number(s.budget).toLocaleString()+'/yr':''}</div>
+      <div class="rm-bio">${s.bio || s.matching_bio || 'No bio yet.'}</div>
+      <div class="rm-prefs">${prefs.slice(0,4).map(p=>`<span class="rm-pref">${p}</span>`).join('')}</div>
+    </div>
+  </div>`;
+}
+
+function openRoommateDetail(s) {
+  const prefs = JSON.parse(s.preferences || '[]');
+  const av = s.profile_image ? `<img src="${s.profile_image}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : fmt.initials(s.full_name);
+  document.getElementById('roommateModalBody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <div class="avatar xl">${av}</div>
+      <div>
+        <h3>${s.full_name}</h3>
+        <div style="color:var(--text-secondary);font-size:0.88rem;margin-top:4px;">${[s.department,s.level].filter(Boolean).join(' · ')}</div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          ${s.gender ? `<span class="badge badge-green">${s.gender}</span>` : ''}
+          ${s.budget ? `<span class="badge badge-amber">Budget: ${fmt.currency(s.budget)}/yr</span>` : ''}
+        </div>
+      </div>
+    </div>
+    ${s.matching_bio || s.bio ? `<div style="background:var(--bg-input);border-radius:var(--r-md);padding:14px;margin-bottom:16px;font-size:0.9rem;color:var(--text-secondary);line-height:1.7;">${s.matching_bio || s.bio}</div>` : ''}
+    ${prefs.length ? `<div style="margin-bottom:20px;"><div style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Habits & preferences</div><div class="rm-prefs">${prefs.map(p=>`<span class="rm-pref">${p}</span>`).join('')}</div></div>` : ''}
+    <p style="font-size:0.8rem;color:var(--text-muted);">Contact this person through a mutual lodge listing or in person on campus.</p>`;
+  openModal('roommateModal');
+}
+
+// ── Notifications ───────────────────────────────────────
+async function loadNotifications() {
+  const list = document.getElementById('notifList');
+  try {
+    const data = await API.get('/notifications.php');
+    const notifs = data.notifications || [];
+    const unread = data.unread_count || 0;
+
+    // Update badges
+    const badge = document.getElementById('notifBadge');
+    const dot = document.getElementById('topbarNotifDot');
+    if (unread > 0) {
+      badge?.classList.remove('hidden'); if(badge) badge.textContent = unread;
+      dot?.classList.remove('hidden');
+    } else {
+      badge?.classList.add('hidden');
+      dot?.classList.add('hidden');
+    }
+
+    if (!notifs.length) {
+      list.innerHTML = '<div class="empty-state"><i class="far fa-bell"></i><p>No notifications yet. When new lodges or matches appear, they\'ll show up here.</p></div>';
+      return;
+    }
+    list.innerHTML = notifs.map(n => `
+      <div class="notif-item ${n.is_read?'':'unread'}" onclick="markRead(${n.id},this)">
+        <div class="notif-icon ${n.type}"><i class="fas ${n.type==='new_lodge'?'fa-building':n.type==='match'?'fa-users':'fa-info-circle'}"></i></div>
+        <div class="notif-body">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-msg">${n.message}</div>
+          <div class="notif-time">${fmt.ago(n.created_at)}</div>
+        </div>
+        ${!n.is_read ? '<div class="unread-dot"></div>' : ''}
+      </div>`).join('');
+  } catch {
+    list.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Failed to load notifications.</p></div>';
+  }
+}
+
+async function markRead(id, el) {
+  el.classList.remove('unread');
+  el.querySelector('.unread-dot')?.remove();
+  await API.post('/notifications.php', { action:'mark_read', notification_id: id });
+  loadNotifications();
+}
+async function markAllRead() {
+  await API.post('/notifications.php', { action:'mark_read' });
+  loadNotifications();
+  toast('All notifications marked as read', 'success', 2000);
+}
+
+// ── Profile ─────────────────────────────────────────────
+async function loadProfile() {
+  try {
+    const data = await API.get('/profile.php');
+    if (data.user) {
+      const u = data.user;
+      document.getElementById('pDept').value = u.department || '';
+      document.getElementById('pLevel').value = u.level || '';
+      document.getElementById('pBio').value = u.bio || '';
+      document.getElementById('pBudget').value = u.budget || '';
+    }
+  } catch {}
+}
+
+function previewAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) return toast('Image must be under 3MB', 'error');
+  const reader = new FileReader();
+  reader.onload = e => {
+    ['sidebarAvatar','topbarAvatar','profileAvatarDisplay'].forEach(id => {
+      const el = document.getElementById(id);
+      el.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('profileForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('profileSaveBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+  const fd = new FormData();
+  fd.append('token', Auth.get('token'));
+  fd.append('department', document.getElementById('pDept').value);
+  fd.append('level', document.getElementById('pLevel').value);
+  fd.append('bio', document.getElementById('pBio').value);
+  fd.append('budget', document.getElementById('pBudget').value);
+  const avatarFile = document.getElementById('avatarInput').files[0];
+  if (avatarFile) fd.append('profile_image', avatarFile);
+  try {
+    const data = await API.postForm('/profile.php', fd);
+    if (data.success) {
+      toast('Profile saved!', 'success');
+      if (data.profile_image && data.profile_image !== 'unchanged') localStorage.setItem('lk_avatar', data.profile_image);
+    } else toast(data.error || 'Save failed', 'error');
+  } catch { toast('Network error', 'error'); }
+  btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save changes';
+});
+
+// ── Matching prefs ───────────────────────────────────────
+let matchingEnabled = false;
+function buildPrefCheckboxes() {
+  document.getElementById('prefCheckboxes').innerHTML = PREFS_LIST.map(p => `
+    <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;font-size:0.85rem;transition:background .2s;">
+      <input type="checkbox" name="pref" value="${p}" style="width:auto;accent-color:var(--g-start);"> ${p}
+    </label>`).join('');
+}
+
+async function loadMatching() {
+  try {
+    const data = await API.get('/profile.php');
+    if (data.user) {
+      matchingEnabled = data.user.available_for_matching === 'yes';
+      updateMatchingToggle();
+      document.getElementById('mBio').value = data.user.matching_bio || data.user.bio || '';
+      const prefs = JSON.parse(data.user.preferences || '[]');
+      document.querySelectorAll('[name="pref"]').forEach(cb => { cb.checked = prefs.includes(cb.value); });
+    }
+  } catch {}
+}
+
+function toggleMatching() {
+  matchingEnabled = !matchingEnabled;
+  updateMatchingToggle();
+}
+function updateMatchingToggle() {
+  const slider = document.getElementById('matchingSlider');
+  slider.style.background = matchingEnabled ? 'var(--g-start)' : 'var(--border)';
+  slider.style.setProperty('--tw', matchingEnabled ? '24px' : '0px');
+  slider.style.cssText += `;border-radius:13px;transition:0.3s;background:${matchingEnabled?'var(--g-start)':'var(--border)'};`;
+  if (matchingEnabled) {
+    slider.setAttribute('data-after', '24');
+    slider.style.setProperty('box-shadow', 'none');
+  }
+  document.getElementById('matchingToggle').checked = matchingEnabled;
+  // Visual knob trick using pseudo-element alternative
+  slider.innerHTML = `<span style="position:absolute;left:${matchingEnabled?'26px':'2px'};top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .3s;box-shadow:0 1px 4px rgba(0,0,0,.3);"></span>`;
+}
+
+document.getElementById('matchingForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const prefs = [...document.querySelectorAll('[name="pref"]:checked')].map(cb => cb.value);
+  const fd = new FormData();
+  fd.append('token', Auth.get('token'));
+  fd.append('available_for_matching', matchingEnabled ? 'yes' : 'no');
+  fd.append('matching_bio', document.getElementById('mBio').value);
+  fd.append('preferences', JSON.stringify(prefs));
+  try {
+    const data = await API.postForm('/profile.php', fd);
+    if (data.success) toast('Matching preferences saved!', 'success');
+    else toast(data.error || 'Save failed', 'error');
+  } catch { toast('Network error', 'error'); }
+});
+
+// ── Global search ────────────────────────────────────────
+function handleGlobalSearch(q) {
+  if (!q.trim()) return;
+  showSection('lodges');
+  setTimeout(() => {
+    document.getElementById('lodgeSearch').value = q;
+    loadLodges();
+  }, 100);
+}
+</script>
+</body>
+</html>

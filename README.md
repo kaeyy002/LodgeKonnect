@@ -1,34 +1,117 @@
-# LodgeKonnect 
+# ⬡ LodgeKonnect v2
 
-**Nigeria’s leading student accommodation and roommate matching platform**  
-A complete platform that connects university students with verified hostels and serious roommates. This was created because the current process of finding accommodation in Nigeria is flawed.
+> Find your lodge. Find your people. — The lodge & roommate finder for FUTO students.
 
-### Current Status
-We are actively expanding across campuses in South-East and South-South Nigeria (FUTO, IMSU, UNN, UNIZIK, UNIPORT, etc.)  
-We are already collecting ₦15,000 to ₦25,000 in listing fees from agents and caretakers.  
-Students pay a commitment or booking fee of ₦2,000 to ₦3,000 via Paystack, which is live integrated.
+A full-stack web app connecting Federal University of Technology Owerri (FUTO) students with off-campus lodge listings in Eziobodo and Umuchima, and with compatible roommates.
 
-### Key Features (Already Live in MVP)
-- Location-based search with campus radius filters  
-- Filters for price, gender, power supply, water, and security  
-- Verified listings with multiple photos  
-- Paystack payment gateway for commitment fees  
-- Instant WhatsApp connection between students and caretakers  
-- Agent and caretaker dashboard for managing listings  
-- Admin approval workflow  
+---
 
-### Business Model (Already Generating Revenue)
-- Listing fee: ₦15,000 to ₦25,000 per property (one-time or annual)  
-- Student commitment fee: ₦2,000 to ₦3,000 per booking  
-- Premium placement and featured listings are coming next.
+## Features
 
-### Tech Stack
-- Backend: C# ASP.NET Core 8 and Entity Framework Core  
-- Database: SQL Server (production) / SQLite (development)  
-- Payments: Paystack Live API (still in development) 
-- Frontend: Razor Pages and Bootstrap (React migration in progress)  
-- Hosting: Railway and Render (currently using a free tier, planning to move to dedicated VPS as we grow)
+- 🏠 **Browse lodges** — search and filter by location, price, gender preference, amenities
+- 📸 **Photo galleries** — lightbox image previews for each lodge
+- 🤝 **Roommate matching** — student opt-in profiles with lifestyle preferences
+- 🔔 **Notifications** — real-time alerts for new lodges and matches
+- ❤️ **Favourites** — save lodges for later comparison
+- 🏢 **Caretaker dashboard** — post, edit, delete lodge listings with photo uploads
+- 🔐 **Secure auth** — token-based sessions, bcrypt passwords, MIME-validated uploads
 
-We built this from the challenges of Nigerian campus life.  
+---
 
-Stay tuned; we’re just getting started.
+## Stack
+
+| Layer | Tech |
+|---|---|
+| Frontend | Vanilla HTML/CSS/JS — glassmorphism design system |
+| Backend | PHP 8+ (PDO, prepared statements) |
+| Database | MySQL 8+ |
+
+---
+
+## Setup
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/yourusername/lodgekonnect.git
+cd lodgekonnect
+```
+
+### 2. Create the database
+```bash
+mysql -u root -p < schema.sql
+```
+
+### 3. Configure credentials
+```bash
+cp api/config.example.php api/config.php
+# Edit api/config.php with your DB host, name, user, and password
+```
+
+### 4. Set permissions on upload directories
+```bash
+chmod 755 uploads/lodges uploads/profiles
+```
+
+### 5. Serve with PHP or Apache/Nginx
+```bash
+# Quick local test:
+php -S localhost:8000
+
+# Or point your Apache/Nginx virtual host to the project root
+```
+
+### 6. Open in browser
+```
+http://localhost:8000
+```
+
+---
+
+## Project Structure
+
+```
+lodgekonnect/
+├── api/
+│   ├── config.php          ← DB config (not in git)
+│   ├── config.example.php  ← Template — copy to config.php
+│   ├── register.php        ← User registration
+│   ├── login.php           ← Auth & token issue
+│   ├── logout.php          ← Token invalidation
+│   ├── verify.php          ← Token check
+│   ├── lodges.php          ← GET list / POST new lodge
+│   ├── lodge_update.php    ← Update lodge (caretaker auth)
+│   ├── lodge_delete.php    ← Delete lodge (caretaker auth)
+│   ├── profile.php         ← GET/POST user profile
+│   ├── roommates.php       ← GET student matching profiles
+│   └── notifications.php  ← GET/mark notifications
+├── assets/
+│   ├── css/main.css        ← Design system & components
+│   └── js/app.js           ← Shared utilities (API, Auth, toast, etc.)
+├── uploads/
+│   ├── lodges/             ← Lodge photos (excluded from git)
+│   └── profiles/           ← Profile photos (excluded from git)
+├── index.html              ← Landing page
+├── login.html              ← Login
+├── signup.html             ← Registration (3-step wizard)
+├── dashboard.html          ← Student dashboard
+├── dashboardcaretaker.html ← Caretaker dashboard
+└── schema.sql              ← Full DB schema
+```
+
+---
+
+## Security highlights (v2 improvements)
+
+- All write endpoints require a valid Bearer token verified against the DB
+- File uploads validated by real MIME type (`finfo`), not just extension
+- Passwords hashed with `bcrypt` cost 12
+- Tokens invalidated in the DB on logout
+- CORS restricted to configured origin
+- Error details never exposed to the client in production
+- No hardcoded credentials — everything via `config.php`
+
+---
+
+## License
+
+MIT — built as a final year project at FUTO, now open for the community.
