@@ -1,22 +1,5 @@
-# Config — NEVER commit real credentials
-api/config.php
-
-# Logs
+node_modules/
+.env
+.env.local
+.vercel/
 *.log
-logs/
-
-# Uploads (user content — don't commit)
-uploads/lodges/*
-uploads/profiles/*
-!uploads/lodges/.gitkeep
-!uploads/profiles/.gitkeep
-
-# OS & editor noise
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-
-# Dev leftovers
-hash.php
-test.php

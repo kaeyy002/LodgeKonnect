@@ -1,0 +1,21 @@
+{
+  "name": "lodgekonnect-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.1",
+    "bcryptjs": "^2.4.3",
+    "formidable": "^3.5.1"
+  },
+  "devDependencies": {
+    "vercel": "^34.0.0"
+  },
+  "engines": {
+    "node": ">=20.x"
+  }
+}
