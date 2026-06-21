@@ -1,188 +1,167 @@
-# LodgeKonnect — Supabase + Vercel Deployment Guide
+# LodgeKonnect v2 — Supabase + Vercel Edition
+
+Lodge & Roommate Finder for FUTO Students.  
+Backend: **Supabase (PostgreSQL)** · Frontend host: **GitHub Pages** · API: **Vercel Serverless Functions**
+
+---
 
 ## Project structure
 
 ```
-lodgekonnect-vercel/
-├── api/
-│   ├── login.js          # POST /api/login
-│   ├── register.js       # POST /api/register
-│   ├── logout.js         # POST /api/logout
-│   ├── verify.js         # POST /api/verify
-│   ├── lodges.js         # GET  /api/lodges   POST /api/lodges
-│   ├── lodge_update.js   # POST /api/lodge_update
-│   ├── lodge_delete.js   # POST /api/lodge_delete
-│   ├── profile.js        # GET  /api/profile  POST /api/profile
-│   ├── notifications.js  # GET  /api/notifications  POST /api/notifications
-│   ├── roommates.js      # GET  /api/roommates
-│   └── favorites.js      # GET  /api/favorites  POST /api/favorites
+LodgeKonnect/
+├── api/                   ← Vercel serverless functions (Node.js)
+│   ├── login.js
+│   ├── register.js
+│   ├── verify.js
+│   ├── logout.js
+│   ├── lodges.js
+│   ├── lodge_update.js
+│   ├── lodge_delete.js
+│   ├── profile.js
+│   ├── notifications.js
+│   └── roommates.js
 ├── lib/
-│   ├── supabase.js       # Supabase client (service role)
-│   └── helpers.js        # CORS, auth middleware, token utils
+│   └── supabase.js        ← shared Supabase client + helpers
 ├── supabase/
-│   └── schema.sql        # Run this once in Supabase SQL Editor
-├── vercel.json
+│   └── schema.sql         ← run this in Supabase SQL editor
+├── assets/
+│   ├── css/
+│   │   ├── main.css
+│   │   └── brand.css
+│   └── js/
+│       └── app.js         ← update API.base after Vercel deploy
+├── index.html
+├── login.html
+├── signup.html
+├── dashboard.html
+├── dashboardcaretaker.html
 ├── package.json
-├── .env.example
+├── vercel.json
 └── .gitignore
 ```
 
 ---
 
-## Step 1 — Set up Supabase
+## STEP 1 — Set up Supabase
 
-1. Go to [supabase.com](https://supabase.com) → open your project (or create one).
-2. **Run the schema**: Dashboard → **SQL Editor** → paste the contents of `supabase/schema.sql` → **Run**.
-3. **Create Storage buckets**: Dashboard → **Storage** → **New bucket**:
-   - `lodge-photos` — toggle **Public** ON
-   - `profile-images` — toggle **Public** ON
-4. Note your credentials: Dashboard → **Project Settings** → **API**:
-   - `Project URL` → `SUPABASE_URL`
-   - `service_role` key (secret!) → `SUPABASE_SERVICE_ROLE_KEY`
+1. Go to **https://supabase.com** → Sign up / Log in
+2. Click **"New project"**
+   - Name: `lodgekonnect`
+   - Database password: choose a strong password (save it!)
+   - Region: pick the closest to Nigeria (e.g. Europe West)
+3. Wait ~2 minutes for the project to spin up
+4. In the left sidebar → **SQL Editor** → click **"New query"**
+5. Open the file `supabase/schema.sql` from this repo, copy all the text, paste it into the editor, and click **Run**
+6. You should see "Success" — your tables are now created
+
+### Get your Supabase keys
+
+1. Left sidebar → **Project Settings** (gear icon) → **API**
+2. Copy these two values (you'll need them for Vercel):
+   - **Project URL** — looks like `https://abcxyz.supabase.co`
+   - **service_role** key (under "Project API keys", click "Reveal") — starts with `eyJ...`
+
+> ⚠️ Never share the service_role key. It's server-only (Vercel keeps it secret).
+
+### Create a Storage bucket for photos
+
+1. Left sidebar → **Storage** → **New bucket**
+2. Name it: `lodge-photos`
+3. Toggle **Public bucket** ON (so photos display without auth)
+4. Click **Save**
 
 ---
 
-## Step 2 — Set up Vercel
+## STEP 2 — Deploy to Vercel
 
-### Option A — CLI (recommended)
+1. Go to **https://vercel.com** → Sign up with GitHub
+2. Click **"Add New Project"** → Import your `LodgeKonnect` GitHub repo
+3. Vercel will detect it automatically. Click **Deploy** (leave all settings as default)
+4. After deploy, go to your project → **Settings** → **Environment Variables**
+5. Add these two variables:
 
-```bash
-npm install -g vercel
-cd lodgekonnect-vercel
-npm install
-vercel login
-vercel                     # first deploy (follow prompts)
+| Name | Value |
+|------|-------|
+| `SUPABASE_URL` | your Project URL from Step 1 |
+| `SUPABASE_SERVICE_ROLE_KEY` | your service_role key from Step 1 |
+
+6. Go to **Deployments** → click the three dots on the latest deploy → **Redeploy** (so the env vars take effect)
+7. Copy your Vercel URL — it looks like `https://lodgekonnect-abc123.vercel.app`
+
+---
+
+## STEP 3 — Update the frontend API URL
+
+1. Open `assets/js/app.js` in vscode.dev
+2. Find this line near the top:
+   ```js
+   base: 'https://lodgekonnect.vercel.app/api',
+   ```
+3. Replace `lodgekonnect.vercel.app` with your actual Vercel URL from Step 2
+4. Save the file and commit it to GitHub
+
+---
+
+## STEP 4 — Fix CSS on GitHub Pages (the styling issue)
+
+The CSS wasn't loading on the live site because the `assets/` folder was missing from the repo.  
+All CSS and JS files are now included in this zip. Upload them all to GitHub:
+
+1. Go to **https://vscode.dev/github/kaeyy002/LodgeKonnect**
+2. Drag and drop these folders into the file tree:
+   - `assets/` (the whole folder — contains css/ and js/)
+3. Commit the changes with message: `fix: add assets folder with CSS and JS`
+4. Wait ~30 seconds, then refresh `https://kaeyy002.github.io/LodgeKonnect/`
+5. The site should now be fully styled ✅
+
+---
+
+## STEP 5 — Upload everything to GitHub via vscode.dev
+
+1. Go to **https://vscode.dev/github/kaeyy002/LodgeKonnect**
+2. Upload these folders/files (drag & drop into the sidebar):
+   - `api/` folder
+   - `lib/` folder
+   - `supabase/` folder
+   - `assets/` folder
+   - `package.json`
+   - `vercel.json`
+   - `.gitignore`
+   - All `.html` files
+3. Commit with message: `feat: migrate to Supabase + Vercel`
+4. Vercel will auto-redeploy within seconds
+
+---
+
+## API endpoints (after Vercel deploy)
+
+| Method | Endpoint | Auth needed |
+|--------|----------|-------------|
+| POST | `/api/register` | No |
+| POST | `/api/login` | No |
+| POST | `/api/verify` | No |
+| POST | `/api/logout` | No |
+| GET | `/api/lodges` | No |
+| POST | `/api/lodges` | Yes (caretaker) |
+| POST | `/api/lodge_update` | Yes (caretaker) |
+| POST | `/api/lodge_delete` | Yes (caretaker) |
+| GET | `/api/profile` | Yes |
+| POST | `/api/profile` | Yes |
+| GET | `/api/notifications` | Yes |
+| POST | `/api/notifications` | Yes |
+| GET | `/api/roommates` | No |
+
+---
+
+## Photo uploads
+
+Photos are no longer uploaded to the server. Instead:
+1. The client uploads directly to **Supabase Storage** (bucket: `lodge-photos`)
+2. The resulting public URL is sent to the API (in the `photos` array field)
+3. The API saves the URL to the `lodge_photos` table
+
+For the upload widget to work, add the Supabase JS client to your HTML pages:
+```html
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 ```
-
-### Option B — GitHub import
-1. Push this folder to a GitHub repo.
-2. Go to [vercel.com](https://vercel.com) → **Add New Project** → import the repo.
-3. Framework preset: **Other**.
-4. Root directory: leave as-is (or set to the folder you pushed).
-
----
-
-## Step 3 — Add environment variables in Vercel
-
-Dashboard → your project → **Settings** → **Environment Variables**.  
-Add each variable from `.env.example`:
-
-| Variable | Value |
-|---|---|
-| `SUPABASE_URL` | `https://xxxx.supabase.co` |
-| `SUPABASE_SERVICE_ROLE_KEY` | your service role key |
-| `ALLOWED_ORIGINS` | `https://yourdomain.com` |
-| `PRODUCTION_ORIGIN` | `https://yourdomain.com` |
-| `NODE_ENV` | `production` |
-
-Then **redeploy** for the variables to take effect.
-
----
-
-## Step 4 — Update your frontend API calls
-
-Replace all PHP paths in your HTML/JS files:
-
-| Old (PHP) | New (Vercel) |
-|---|---|
-| `/api/login.php` | `/api/login` |
-| `/api/register.php` | `/api/register` |
-| `/api/logout.php` | `/api/logout` |
-| `/api/verify.php` | `/api/verify` |
-| `/api/lodges.php` | `/api/lodges` |
-| `/api/lodge_update.php` | `/api/lodge_update` |
-| `/api/lodge_delete.php` | `/api/lodge_delete` |
-| `/api/profile.php` | `/api/profile` |
-| `/api/notifications.php` | `/api/notifications` |
-| `/api/roommates.php` | `/api/roommates` |
-| `/api/favorites.php` | `/api/favorites` |
-
-### Auth header pattern
-All protected endpoints read a Bearer token from the `Authorization` header.  
-Update your fetch calls like this:
-
-```js
-const token = localStorage.getItem('lk_token');
-
-const res = await fetch('/api/profile', {
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  }
-});
-```
-
-For `multipart/form-data` requests (lodge/profile image uploads), **omit** `Content-Type`
-and append the token to the FormData instead:
-
-```js
-const form = new FormData();
-form.append('token', localStorage.getItem('lk_token'));
-form.append('lodge_name', 'Sunrise Hostel');
-// ...
-await fetch('/api/lodges', { method: 'POST', body: form });
-```
-
----
-
-## API reference
-
-### POST `/api/login`
-**Body (JSON):** `loginId`, `password`, `userType`  
-**Returns:** `{ success, token, user_id, user_type, user_name, redirect, … }`
-
-### POST `/api/register`
-**Body (JSON):** `full_name`, `email`, `phone`, `password`, `confirm_password`,
-`user_type`, `gender`, `department`\*, `level`\*, `lodge_name`†, `location`†, `lodge_description`†  
-\*student only  †caretaker only
-
-### POST `/api/logout`
-**Body (JSON):** `token`
-
-### POST `/api/verify`
-**Body (JSON):** `token`
-
-### GET `/api/lodges`
-**Query params:** `location`, `gender`, `min_price`, `max_price`, `caretaker_id`, `q` (search)
-
-### POST `/api/lodges`
-**Auth required.** Multipart form: `lodge_name`, `location`, `price`, `description`,
-`room_number`, `gender_preference`, `amenities`, `photos[]`, `token`
-
-### POST `/api/lodge_update`
-**Auth required.** Multipart form: `lodge_id` + same fields as POST lodges
-
-### POST `/api/lodge_delete`
-**Auth required.** JSON: `lodge_id`
-
-### GET `/api/profile`
-**Auth required.**
-
-### POST `/api/profile`
-**Auth required.** Multipart form: `department`, `level`, `bio`, `matching_bio`,
-`available_for_matching`, `preferences` (JSON string), `profile_image`, `token`
-
-### GET `/api/notifications`
-**Auth required.**
-
-### POST `/api/notifications`
-**Auth required.** JSON: `action: "mark_read"`, `notification_id` (optional — omit to mark all)
-
-### GET `/api/roommates`
-**Query params:** `q`, `gender`, `level`, `department`, `max_budget`
-
-### GET `/api/favorites`
-**Auth required.**
-
-### POST `/api/favorites`
-**Auth required.** JSON: `lodge_id` (toggles add/remove)
-
----
-
-## Local development
-
-```bash
-cp .env.example .env.local   # fill in your values
-npm install
-vercel dev                   # runs all /api/* functions locally on :3000
-```
+Then use `supabase.storage.from('lodge-photos').upload(...)` in your frontend JS.

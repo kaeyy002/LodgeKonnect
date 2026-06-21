@@ -1,9 +1,13 @@
 /* ═══════════════════════════════════════════
    LodgeKonnect v2 — Shared Utilities
+   API base updated for Vercel deployment
 ═══════════════════════════════════════════ */
 
 const API = {
-  base: './api',
+  // ↓ Replace this with your actual Vercel deployment URL after deploying
+  // e.g. 'https://lodgekonnect.vercel.app/api'
+  base: 'https://lodgekonnect.vercel.app/api',
+
   token: () => localStorage.getItem('lk_token'),
 
   headers() {
@@ -14,14 +18,17 @@ const API = {
   },
 
   async get(endpoint, params = {}) {
-    const url = new URL(this.base + endpoint, location.href);
+    // Strip .php extension if still used anywhere in HTML pages
+    const clean = endpoint.replace(/\.php$/, '');
+    const url = new URL(this.base + clean, location.href);
     Object.entries(params).forEach(([k, v]) => v !== '' && url.searchParams.set(k, v));
     const res = await fetch(url, { headers: this.headers() });
     return res.json();
   },
 
   async post(endpoint, body) {
-    const res = await fetch(this.base + endpoint, {
+    const clean = endpoint.replace(/\.php$/, '');
+    const res = await fetch(this.base + clean, {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify(body)
@@ -30,8 +37,8 @@ const API = {
   },
 
   async postForm(endpoint, formData) {
-    // Don't set Content-Type for FormData — browser sets multipart boundary
-    const res = await fetch(this.base + endpoint, {
+    const clean = endpoint.replace(/\.php$/, '');
+    const res = await fetch(this.base + clean, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${this.token()}` },
       body: formData
@@ -60,12 +67,12 @@ const Auth = {
     const token = this.get('token');
     if (!token) return false;
     try {
-      const data = await API.post('/verify.php', { token });
+      const data = await API.post('/verify', { token });
       return data.valid;
     } catch { return false; }
   },
   async logout() {
-    await API.post('/logout.php', { token: this.get('token') }).catch(() => {});
+    await API.post('/logout', { token: this.get('token') }).catch(() => {});
     this.clear();
     location.href = 'login.html';
   }
@@ -99,7 +106,6 @@ function closeModal(id) {
   document.getElementById(id)?.classList.remove('open');
   document.body.style.overflow = '';
 }
-// Close on backdrop click
 document.addEventListener('click', e => {
   if (e.target.classList.contains('modal-overlay')) {
     e.target.classList.remove('open');

@@ -1,21 +1,13 @@
 {
-  "name": "lodgekonnect-api",
-  "version": "1.0.0",
+  "name": "lodgekonnect",
+  "version": "2.0.0",
+  "description": "LodgeKonnect — Lodge & Roommate Finder for FUTO Students (Supabase + Vercel)",
   "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel --prod"
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.43.1",
-    "bcryptjs": "^2.4.3",
-    "formidable": "^3.5.1"
-  },
-  "devDependencies": {
-    "vercel": "^34.0.0"
-  },
-  "engines": {
-    "node": ">=20.x"
+    "@supabase/supabase-js": "^2.45.0",
+    "bcryptjs": "^2.4.3"
   }
 }
